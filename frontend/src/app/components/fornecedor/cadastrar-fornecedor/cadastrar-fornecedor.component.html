@@ -1,1 +1,246 @@
-<p>cadastrar-fornecedor works!</p>
+<form [formGroup]="fornecedorForm" (ngSubmit)="onSubmit()">
+  <div class="d-flex justify-content-between mb-4">
+    <h2>Cadastrar Fornecedor</h2>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">Tipo de Fornecedor</label>
+    <div class="form-check">
+      <input
+        class="form-check-input"
+        type="radio"
+        value="PF"
+        formControlName="tipo"
+        id="tipoPF"
+      />
+      <label class="form-check-label" for="tipoPF">Pessoa Física</label>
+    </div>
+    <div class="form-check">
+      <input
+        class="form-check-input"
+        type="radio"
+        value="PJ"
+        formControlName="tipo"
+        id="tipoPJ"
+      />
+      <label class="form-check-label" for="tipoPJ">Pessoa Jurídica</label>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="form-label">
+      {{ fornecedorForm.get("tipo")?.value === "PF" ? "CPF" : "CNPJ" }}
+    </label>
+
+    <ng-container *ngIf="fornecedorForm.get('tipo')?.value === 'PF'">
+      <input
+        type="text"
+        class="form-control"
+        formControlName="documento"
+        appCpfMask
+        placeholder="000.000.000-00"
+      />
+      <div *ngIf="fornecedorForm.get('documento')?.errors" class="text-danger">
+        <small *ngIf="fornecedorForm.get('documento')?.hasError('required')">
+          CPF é obrigatório
+        </small>
+        <small *ngIf="fornecedorForm.get('documento')?.hasError('pattern')">
+          Formato inválido (000.000.000-00)
+        </small>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="fornecedorForm.get('tipo')?.value === 'PJ'">
+      <input
+        type="text"
+        class="form-control"
+        formControlName="documento"
+        appCnpjMask
+        placeholder="00.000.000/0000-00"
+      />
+      <div *ngIf="fornecedorForm.get('documento')?.errors" class="text-danger">
+        <small *ngIf="fornecedorForm.get('documento')?.hasError('required')">
+          CNPJ é obrigatório
+        </small>
+        <small *ngIf="fornecedorForm.get('documento')?.hasError('pattern')">
+          Formato inválido (00.000.000/0000-00)
+        </small>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="mb-3">
+    <label for="nome" class="form-label">
+      {{
+        fornecedorForm.get("tipo")?.value === "PF"
+          ? "Nome Completo"
+          : "Razão Social"
+      }}
+    </label>
+    <input type="text" class="form-control" id="nome" formControlName="nome" />
+    <div *ngIf="fornecedorForm.get('nome')?.errors" class="text-danger">
+      <small *ngIf="fornecedorForm.get('nome')?.hasError('required')">
+        Campo obrigatório
+      </small>
+      <small *ngIf="fornecedorForm.get('nome')?.hasError('minlength')">
+        Mínimo de 3 caracteres
+      </small>
+    </div>
+  </div>
+
+  <div *ngIf="fornecedorForm.get('tipo')?.value === 'PF'" class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label for="rg" class="form-label">RG</label>
+        <input
+          type="text"
+          class="form-control"
+          id="rg"
+          formControlName="rg"
+          appRgMask
+          placeholder="00.000.000-0"
+        />
+        <div *ngIf="fornecedorForm.get('rg')?.errors" class="text-danger">
+          <small *ngIf="fornecedorForm.get('rg')?.hasError('required')">
+            RG obrigatório
+          </small>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label for="dataNascimento" class="form-label"
+          >Data de Nascimento</label
+        >
+        <input
+          type="date"
+          class="form-control"
+          id="dataNascimento"
+          formControlName="dataNascimento"
+        />
+        <div
+          *ngIf="fornecedorForm.get('dataNascimento')?.errors"
+          class="text-danger"
+        >
+          <small
+            *ngIf="fornecedorForm.get('dataNascimento')?.hasError('required')"
+          >
+            Data obrigatória
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="email" class="form-label">Email</label>
+    <input
+      type="email"
+      class="form-control"
+      id="email"
+      formControlName="email"
+    />
+    <div *ngIf="fornecedorForm.get('email')?.errors" class="text-danger">
+      <small *ngIf="fornecedorForm.get('email')?.hasError('required')">
+        Email obrigatório
+      </small>
+      <small *ngIf="fornecedorForm.get('email')?.hasError('email')">
+        Email inválido
+      </small>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="cep" class="form-label">CEP</label>
+    <input
+      type="text"
+      class="form-control"
+      id="cep"
+      formControlName="cep"
+      appCepMask
+      placeholder="00000-000"
+    />
+    <div *ngIf="fornecedorForm.get('cep')?.errors" class="text-danger">
+      <small *ngIf="fornecedorForm.get('cep')?.hasError('required')">
+        CEP é obrigatório
+      </small>
+      <small *ngIf="fornecedorForm.get('cep')?.hasError('pattern')">
+        CEP inválido (8 dígitos)
+      </small>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Logradouro</label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="logradouro"
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Bairro</label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="bairro"
+          readonly
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Cidade</label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="cidade"
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Estado</label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="estado"
+          readonly
+        />
+      </div>
+    </div>
+  </div>
+
+  <app-vinculacao
+    [titulo]="'Empresas Vinculadas'"
+    [tipo]="'empresas'"
+    [itensVinculados]="empresasVinculadas"
+    (atualizarVinculos)="atualizarEmpresas($event)"
+  ></app-vinculacao>
+
+  <button
+    type="button"
+    class="btn btn-secondary"
+    (click)="onVoltar()"
+    title="Voltar"
+  >
+    <i class="bi bi-skip-backward-fill"></i>
+  </button>
+  <button
+    type="submit"
+    class="btn btn-primary m-1"
+    [disabled]="!fornecedorForm.valid || !enderecoEncontrado"
+    title="Cadastrar"
+  >
+    Cadastrar
+  </button>
+</form>

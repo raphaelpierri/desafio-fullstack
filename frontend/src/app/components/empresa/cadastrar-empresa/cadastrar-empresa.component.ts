@@ -6,16 +6,18 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CepMaskDirective } from '../../../directives/cep-mask.directive';
 import { CnpjMaskDirective } from '../../../directives/cnpj-mask.directive';
+import { VinculacaoComponent } from '../../vinculacao/vinculacao.component';
 
 @Component({
   selector: 'app-cadastrar-empresa',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, CepMaskDirective, CnpjMaskDirective],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, CepMaskDirective, CnpjMaskDirective, VinculacaoComponent],
   templateUrl: './cadastrar-empresa.component.html',
   styleUrl: './cadastrar-empresa.component.scss'
 })
 export class CadastrarEmpresaComponent {
   empresaForm!: FormGroup;
+  fornecedoresVinculados: any[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -79,8 +81,16 @@ export class CadastrarEmpresaComponent {
     });
   }
 
+  atualizarFornecedores(fornecedores: any[]): void {
+    this.fornecedoresVinculados = fornecedores;
+  }
+
   onSubmit(): void {
     if (this.empresaForm.valid) {
+      const dados = {
+        ...this.empresaForm.value,
+        fornecedoresIds: this.fornecedoresVinculados.map(e => e.id)
+      };
       const empresaData = this.empresaForm.value;
     }
   }

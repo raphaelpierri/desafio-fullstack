@@ -1,9 +1,11 @@
+import { Fornecedor } from "./fornecedor.model";
+
 export interface Empresa {
-  id: string;
+  id: number;
   cnpj: string;
   nomeFantasia: string;
   cep: string;
-  fornecedores: string[];
+  fornecedores: Fornecedor[];
   dataCadastro: Date;
   endereco?: {
     logradouro: string;
@@ -15,11 +17,11 @@ export interface Empresa {
 
 export class EmpresaModel implements Empresa {
   constructor(
-    public id: string,
+    public id: number,
     public cnpj: string,
     public nomeFantasia: string,
     public cep: string,
-    public fornecedores: string[] = [],
+    public fornecedores: Fornecedor[] = [],
     public dataCadastro: Date = new Date(),
     public endereco?: {
       logradouro: string;

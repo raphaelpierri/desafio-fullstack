@@ -1,10 +1,12 @@
+import { Empresa } from "./empresa.model";
+
 export enum TipoPessoa {
   FISICA = 'Física',
   JURIDICA = 'Jurídica'
 }
 
 export interface Fornecedor {
-  id: string;
+  id: number;
   tipoPessoa: TipoPessoa;
   cpf?: string;
   cnpj?: string;
@@ -13,17 +15,17 @@ export interface Fornecedor {
   cep: string;
   rg?: string;
   dataNascimento?: Date;
-  empresas: string[];
+  empresas: Empresa[];
 }
 
 export class FornecedorModel implements Fornecedor {
   constructor(
-    public id: string,
+    public id: number,
     public tipoPessoa: TipoPessoa,
     public nome: string,
     public email: string,
     public cep: string,
-    public empresas: string[] = [],
+    public empresas: Empresa[] = [],
     public cpf?: string,
     public cnpj?: string,
     public rg?: string,

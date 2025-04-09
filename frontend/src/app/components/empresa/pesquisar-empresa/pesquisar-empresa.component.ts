@@ -46,11 +46,11 @@ export class PesquisarEmpresaComponent {
     this.router.navigate(['cadastrar'], { relativeTo: this.route });
   }
 
-  onEdit(id: string): void {
+  onEdit(id: number): void {
     this.router.navigate(['editar', id], { relativeTo: this.route });
   }
 
-  onDelete(id: string): void {
+  onDelete(id: number): void {
     if(confirm('Deseja realmente excluir esta empresa?')) {
       this.empresaService.delete(id).subscribe({
         next: () => {

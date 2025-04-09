@@ -53,11 +53,11 @@ export class PesquisarFornecedorComponent implements OnInit {
     this.router.navigate(['cadastrar'], { relativeTo: this.route });
   }
 
-  editarFornecedor(id: string): void {
+  editarFornecedor(id: number): void {
     this.router.navigate(['editar', id], { relativeTo: this.route });
   }
 
-  excluirFornecedor(id: string): void {
+  excluirFornecedor(id: number): void {
     if(confirm('Confirma a exclusão?')) {
       this.service.delete(id).subscribe({
         next: () => {

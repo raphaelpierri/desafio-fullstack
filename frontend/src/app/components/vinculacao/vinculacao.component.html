@@ -1,0 +1,60 @@
+<div class="vinculacao-container mb-4 p-3 border rounded">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5>{{ titulo }}</h5>
+    <button
+      type="button"
+      class="btn btn-sm btn-outline-primary"
+      (click)="abrirModalBusca()"
+    >
+      <i class="bi bi-plus-lg"></i> Adicionar
+    </button>
+  </div>
+
+  <div class="vinculados-list">
+    <div
+      *ngFor="let item of itensVinculados"
+      class="vinculado-item badge bg-secondary me-2"
+    >
+      {{ item.nome }}
+      <button
+        type="button"
+        class="btn-close btn-close-white ms-2"
+        (click)="removerVinculo(item)"
+      ></button>
+    </div>
+  </div>
+
+  <div class="modal fade" id="buscaModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Buscar {{ tipo }}</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <input
+            type="text"
+            class="form-control mb-3"
+            placeholder="Digite para buscar..."
+            [(ngModel)]="termoBusca"
+          />
+
+          <div class="list-group">
+            <button
+              type="button"
+              class="list-group-item list-group-item-action"
+              *ngFor="let item of resultadosBusca"
+              (click)="selecionarItem(item)"
+            >
+              {{ item.nome }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

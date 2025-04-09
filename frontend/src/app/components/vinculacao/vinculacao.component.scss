@@ -1,0 +1,19 @@
+.vinculacao-container {
+  background-color: #f8f9fa;
+
+  .vinculados-list {
+    min-height: 50px;
+
+    .vinculado-item {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+
+      .btn-close {
+        font-size: 0.6rem;
+        padding: 0.3rem;
+      }
+    }
+  }
+}

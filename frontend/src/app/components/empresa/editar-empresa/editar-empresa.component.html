@@ -10,6 +10,7 @@
       id="cnpj"
       formControlName="cnpj"
       appCnpjMask
+      placeholder="00.000.000/0000-00"
     />
     <div *ngIf="empresaForm.get('cnpj')?.errors" class="text-danger">
       <small *ngIf="empresaForm.get('cnpj')?.hasError('required')">
@@ -29,6 +30,7 @@
       id="cep"
       formControlName="cep"
       appCepMask
+      placeholder="00000-000"
     />
     <div *ngIf="empresaForm.get('cep')?.errors" class="text-danger">
       <small *ngIf="empresaForm.get('cep')?.hasError('required')">

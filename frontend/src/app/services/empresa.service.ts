@@ -24,11 +24,11 @@ export class EmpresaService {
     return this.http.post<Empresa>(this.apiUrl, empresa);
   }
 
-  updateById(id: string, empresa: Empresa): Observable<Empresa> {
+  updateById(id: number, empresa: Empresa): Observable<Empresa> {
     return this.http.put<Empresa>(`${this.apiUrl}/${id}`, empresa);
   }
 
-  delete(id: string): Observable<void> {
+  delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
