@@ -1,0 +1,127 @@
+<form [formGroup]="empresaForm" (ngSubmit)="onSubmit()">
+  <div class="d-flex justify-content-between mb-4">
+    <h2>Cadastrar Empresa</h2>
+  </div>
+  <div class="mb-3">
+    <label for="nomeFantasia" class="form-label">Nome Fantasia</label>
+    <input
+      type="text"
+      class="form-control"
+      id="nomeFantasia"
+      formControlName="nomeFantasia"
+    />
+    <div *ngIf="empresaForm.get('nomeFantasia')?.errors" class="text-danger">
+      <small *ngIf="empresaForm.get('nomeFantasia')?.hasError('required')">
+        Nome Fantasia é obrigatório
+      </small>
+      <small *ngIf="empresaForm.get('nomeFantasia')?.hasError('minlength')">
+        Nome Fantasia deve ter pelo menos 3 caracteres
+      </small>
+    </div>
+  </div>
+  <div class="mb-3">
+    <label for="cnpj" class="form-label">CNPJ</label>
+    <input
+      type="text"
+      class="form-control"
+      id="cnpj"
+      formControlName="cnpj"
+      appCnpjMask
+    />
+    <div *ngIf="empresaForm.get('cnpj')?.errors" class="text-danger">
+      <small *ngIf="empresaForm.get('cnpj')?.hasError('required')">
+        CNPJ é obrigatório
+      </small>
+      <small *ngIf="empresaForm.get('cnpj')?.hasError('pattern')">
+        CNPJ inválido (14 dígitos)
+      </small>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label for="cep" class="form-label">CEP</label>
+    <input
+      type="text"
+      class="form-control"
+      id="cep"
+      formControlName="cep"
+      appCepMask
+    />
+    <div *ngIf="empresaForm.get('cep')?.errors" class="text-danger">
+      <small *ngIf="empresaForm.get('cep')?.hasError('required')">
+        CEP é obrigatório
+      </small>
+      <small *ngIf="empresaForm.get('cep')?.hasError('pattern')">
+        CEP inválido (8 dígitos)
+      </small>
+    </div>
+  </div>
+
+  <!-- Campos de endereço -->
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Logradouro</label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="logradouro"
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Bairro</label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="bairro"
+          readonly
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Cidade</label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="cidade"
+          readonly
+        />
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="mb-3">
+        <label class="form-label">Estado</label>
+        <input
+          type="text"
+          class="form-control"
+          formControlName="estado"
+          readonly
+        />
+      </div>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    class="btn btn-secondary"
+    (click)="onVoltar()"
+    title="Voltar"
+  >
+    <i class="bi bi-skip-backward-fill"></i>
+  </button>
+  <button
+    type="button"
+    class="btn btn-primary m-1"
+    (click)="onSubmit()"
+    title="Cadastrar"
+  >
+    Cadastrar
+  </button>
+</form>

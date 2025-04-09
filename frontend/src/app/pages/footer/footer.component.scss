@@ -1,0 +1,48 @@
+.footer {
+  background: rgba(36, 35, 35, 0.98);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 1rem 2rem;
+  position: fixed;
+  bottom: 0;
+  left: 250px;
+  right: 0;
+  height: 60px;
+  z-index: 1000;
+  box-shadow: 0 -3px 10px rgba(0, 0, 0, 0.15);
+  transition: left 0.3s ease;
+
+  .footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+
+    .developer-credit {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.9rem;
+      font-weight: 500;
+
+      i {
+        font-size: 1.1rem;
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    left: 0 !important;
+    padding: 0.75rem 1rem;
+
+    .footer-content {
+      justify-content: center;
+
+      .developer-credit {
+        font-size: 0.8rem;
+        text-align: center;
+      }
+    }
+  }
+}

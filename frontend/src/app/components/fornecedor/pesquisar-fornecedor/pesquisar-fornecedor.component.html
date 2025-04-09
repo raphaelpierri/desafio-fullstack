@@ -1,0 +1,88 @@
+<div class="container-fluid mt-4">
+  <div class="d-flex justify-content-between mb-4">
+    <h2>Fornecedores</h2>
+    <button class="btn btn-primary" (click)="novoFornecedor()">
+      <i class="bi bi-plus-circle"></i> Novo Fornecedor
+    </button>
+  </div>
+
+  <div class="row mb-3">
+    <div class="col-md-6">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Filtrar por nome"
+        [(ngModel)]="filtroNome"
+      />
+    </div>
+    <div class="col-md-6">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Filtrar por CPF/CNPJ"
+        [(ngModel)]="filtroDocumento"
+      />
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregando...</span>
+    </div>
+  </div>
+
+  <div *ngIf="!loading">
+    <div class="card shadow">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>Nome</th>
+                <th>Documento</th>
+                <th>E-mail</th>
+                <th>CEP</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="
+                  let fornecedor of fornecedores
+                    | filtrarFornecedor : filtroNome : filtroDocumento
+                "
+              >
+                <td>{{ fornecedor.nome }}</td>
+                <td>
+                  {{
+                    fornecedor.tipoPessoa === TipoPessoa.FISICA
+                      ? (fornecedor.cpf?.toString() ?? "" | cpf)
+                      : (fornecedor.cnpj?.toString() ?? "" | cnpj)
+                  }}
+                </td>
+                <td>{{ fornecedor.email }}</td>
+                <td>{{ fornecedor.cep | cep }}</td>
+                <td>
+                  <div class="btn-group">
+                    <button
+                      class="btn btn-sm btn-warning"
+                      (click)="editarFornecedor(fornecedor.id)"
+                    >
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-danger"
+                      (click)="excluirFornecedor(fornecedor.id)"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <router-outlet></router-outlet>
+</div>

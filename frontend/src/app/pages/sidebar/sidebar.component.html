@@ -1,0 +1,21 @@
+<nav class="sidebar">
+  <div class="sidebar-header">
+    <a routerLink="/home" class="logo-link">
+      <img src="assets/img/accenture-logo.png" alt="Accenture" class="logo" />
+    </a>
+  </div>
+  <ul class="nav flex-column">
+    @for (item of menuItems; track item.path) {
+    <li class="nav-item">
+      <a
+        class="nav-link"
+        routerLink="{{ item.path }}"
+        routerLinkActive="active"
+      >
+        <i class="bi bi-{{ item.icon }} me-2"></i>
+        {{ item.title }}
+      </a>
+    </li>
+    }
+  </ul>
+</nav>

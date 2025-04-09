@@ -1,0 +1,61 @@
+<div class="container-fluid mt-4">
+  <div class="d-flex justify-content-between mb-4">
+    <h2>Gerenciar Empresas</h2>
+    <button class="btn btn-primary" (click)="onAdd()">
+      <i class="bi bi-plus-circle"></i> Nova Empresa
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="text-center">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Carregando...</span>
+    </div>
+  </div>
+
+  <div *ngIf="!loading">
+    <div class="card shadow">
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead class="table-dark">
+              <tr>
+                <th>CNPJ</th>
+                <th>Nome Fantasia</th>
+                <th>CEP</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let empresa of empresas">
+                <td>{{ empresa.cnpj | cnpj }}</td>
+                <td>{{ empresa.nomeFantasia }}</td>
+                <td>{{ empresa.cep | cep }}</td>
+                <td>
+                  <div class="btn-group">
+                    <button
+                      class="btn btn-sm btn-warning"
+                      (click)="onEdit(empresa.id)"
+                    >
+                      <i class="bi bi-pencil"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-danger"
+                      (click)="onDelete(empresa.id)"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="empresas.length === 0">
+                <td colspan="4" class="text-center">
+                  Nenhuma empresa encontrada
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,61 @@
+.sidebar {
+  position: fixed;
+  top: 0; // Garantir que comece no topo
+  left: 0;
+  bottom: 0;
+  width: 250px;
+  z-index: 1001; // Maior que o header (1000)
+  background: #1a1a1a;
+  overflow-y: auto;
+
+  // Remova qualquer margin/padding superior
+  padding-top: 0;
+  margin-top: 0;
+  .nav-link {
+    color: #ffffff !important; // Branco puro
+    font-weight: 600;
+    font-size: 1.15rem; // Aumentado de 1.1 para 1.15
+    letter-spacing: 0.5px;
+    padding: 0.85rem 1.5rem; // Aumento do padding
+
+    i {
+      font-size: 1.3rem; // Aumentado de 1.2 para 1.3
+      margin-right: 0.75rem;
+      transition: all 0.3s ease;
+    }
+
+    &:hover {
+      color: #ffffff !important;
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.3); // Brilho aumentado
+
+      i {
+        color: #ffffff;
+        filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5)); // Brilho mais intenso
+        transform: scale(1.1); // Efeito de escala
+      }
+    }
+
+    &.active {
+      font-size: 1.2rem; // Tamanho maior para ativo
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); // Transição mais suave
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .sidebar {
+    .nav-link {
+      font-size: 1rem; // Tamanho mantido legível
+      padding: 0.75rem;
+
+      i {
+        font-size: 1.4rem; // Ícones ainda maiores
+        margin-right: 0;
+      }
+    }
+  }
+}
