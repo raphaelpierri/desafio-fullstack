@@ -20,14 +20,15 @@ export class CepService {
   constructor(private http: HttpClient) { }
 
   buscarEndereco(cep: string): Observable<Endereco | null> {
-    return this.http.get(`/viacep/ws/${cep}/json`).pipe(
+    return this.http.get(`https://viacep.com.br/ws/${cep}/json`).pipe(
       map((response: any) => ({
         cep: response.cep,
         logradouro: response.logradouro,
         bairro: response.bairro,
         localidade: response.localidade,
         uf: response.uf
-      }))
+      })),
+      catchError(() => of(null))
     );
   }
 

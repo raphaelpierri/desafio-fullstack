@@ -8,5 +8,7 @@ namespace EmpresaFornecedor.Application.DTOs.Fornecedor
         public string Cep { get; set; } = null!;
         public string Rg { get; set; } = null!;
         public DateOnly? DataNascimento { get; set; }
+
+        public List<int>? EmpresaIds { get; set; }
     }
 }

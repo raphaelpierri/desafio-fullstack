@@ -1,48 +1,82 @@
-using EmpresaFornecedor.Application.DTOs;
-using EmpresaFornecedor.Application.Mapping;
-using EmpresaFornecedor.Application.Services;
 using EmpresaFornecedor.Infrastructure.Context;
-using FluentValidation;
-using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
+using EmpresaFornecedor.Application.Services;
+using EmpresaFornecedor.Application.Validators;
 using System.Reflection;
-using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(serverOptions =>
+builder.Services.AddSwaggerGen(c =>
 {
-    serverOptions.Listen(IPAddress.Any, 5000);
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
 });
 
+// Força o Kestrel a escutar na porta 80 para compatibilidade com o docker-compose
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(80);
+});
 
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<EmpresaService>();
-builder.Services.AddScoped<FornecedorService>();
-
-builder.Services.AddHttpClient<FornecedorService>();
-
-builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
-
-builder.Services.AddValidatorsFromAssemblyContaining<FornecedorCreateDtoValidator>();
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddFluentValidationClientsideAdapters();
-
+// Adiciona os serviços básicos
 builder.Services.AddControllers();
-builder.Services.AddControllersWithViews();
-builder.Services.AddRazorPages();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Configura o DbContext para usar a connection string do appsettings.json
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Registra os serviços da aplicação
+builder.Services.AddScoped<EmpresaService>();
+
+// Registra FornecedorService como cliente tipado de HttpClient, assim o HttpClient será injetado
+builder.Services.AddHttpClient<FornecedorService>();
+
+// Registra o AutoMapper para escanear os assemblies
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+
+// (Opcional) Habilita CORS para desenvolvimento
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 var app = builder.Build();
 
-app.UseSwagger();
+// Aplica automaticamente as migrations ao iniciar o app (cria/atualiza o banco se necessário)
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        db.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Erro ao aplicar migrations: " + ex.Message);
+        throw;
+    }
+}
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
+// Use CORS se necessário (antes dos demais middlewares)
+app.UseCors("AllowAll");
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
 app.MapControllers();
-app.MapRazorPages();
 
 app.Run();

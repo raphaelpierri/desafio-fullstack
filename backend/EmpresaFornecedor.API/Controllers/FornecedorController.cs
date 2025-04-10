@@ -1,38 +1,53 @@
-using EmpresaFornecedor.Application.Services;
-using EmpresaFornecedor.Application.DTOs.Fornecedor;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
+using EmpresaFornecedor.Application.DTOs.Fornecedor;
+using EmpresaFornecedor.Application.Services;
 
-[ApiController]
-[Route("fornecedores")]
-public class FornecedorController : ControllerBase
+namespace EmpresaFornecedor.API.Controllers
 {
-    private readonly FornecedorService _service;
-
-    public FornecedorController(FornecedorService service)
+    [ApiController]
+    [Route("api/fornecedor")]
+    public class FornecedorController : ControllerBase
     {
-        _service = service;
-    }
+        private readonly FornecedorService _fornecedorService;
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll(string? nome, string? documento)
-    {
-        var result = await _service.GetFilteredAsync(nome, documento);
-        return Ok(result);
-    }
+        public FornecedorController(FornecedorService fornecedorService)
+        {
+            _fornecedorService = fornecedorService;
+        }
 
-    [HttpPost("{empresaId}")]
-    public async Task<IActionResult> Create(int empresaId, [FromBody] FornecedorCreateDto dto)
-    {
-        await _service.CreateAsync(dto, empresaId);
-        return Ok("Fornecedor criado com sucesso.");
-    }
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var fornecedores = await _fornecedorService.GetAllAsync();
+            return Ok(fornecedores);
+        }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
-    {
-        await _service.DeleteAsync(id);
-        return NoContent();
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var fornecedor = await _fornecedorService.GetByIdAsync(id);
+            return fornecedor is null ? NotFound() : Ok(fornecedor);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] FornecedorCreateDto dto)
+        {
+            await _fornecedorService.CreateAsync(dto);
+            return Ok("Fornecedor criado com sucesso.");
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, FornecedorUpdateDto dto)
+        {
+            await _fornecedorService.UpdateAsync(id, dto);
+            return Ok("Fornecedor atualizado com sucesso.");
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _fornecedorService.DeleteAsync(id);
+            return Ok("Fornecedor deletado com sucesso.");
+        }
     }
 }

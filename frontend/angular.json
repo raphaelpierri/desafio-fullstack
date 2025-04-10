@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "desafio-fullstack": {
+    "desafio-fullstack-frontend": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -37,11 +37,6 @@
             "scripts": [
               "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
             ],
-            "server": "src/main.server.ts",
-            "prerender": true,
-            "ssr": {
-              "entry": "server.ts"
-            }
           },
           "configurations": {
             "production": {
@@ -74,10 +69,10 @@
           },
           "configurations": {
             "production": {
-              "buildTarget": "desafio-fullstack:build:production"
+              "buildTarget": "desafio-fullstack-frontend:build:production"
             },
             "development": {
-              "buildTarget": "desafio-fullstack:build:development"
+              "buildTarget": "desafio-fullstack-frontend:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -85,7 +80,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "buildTarget": "desafio-fullstack:build"
+            "buildTarget": "desafio-fullstack-frontend:build"
           }
         },
         "test": {

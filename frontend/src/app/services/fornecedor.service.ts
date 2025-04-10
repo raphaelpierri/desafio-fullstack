@@ -8,11 +8,12 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class FornecedorService {
-  private apiUrl = `/api/fornecedores`;
+  private apiUrl = `${environment.apiUrl}/fornecedor`;
 
   constructor(private http: HttpClient) { }
 
   findAll(filtros?: any): Observable<Fornecedor[]> {
+    console.log(this.apiUrl)
     return this.http.get<Fornecedor[]>(this.apiUrl, { params: filtros });
   }
 

@@ -1,97 +1,120 @@
 using AutoMapper;
+using EmpresaFornecedor.Application.DTOs.Fornecedor;
 using EmpresaFornecedor.Domain.Entities;
 using EmpresaFornecedor.Infrastructure.Context;
+using EmpresaFornecedor.Application.Validators;
 using Microsoft.EntityFrameworkCore;
-using EmpresaFornecedor.Application.DTOs.Fornecedor;
 
-namespace EmpresaFornecedor.Application.Services;
-
-
-public class FornecedorService
+namespace EmpresaFornecedor.Application.Services
 {
-    private readonly ApplicationDbContext _context;
-    private readonly IMapper _mapper;
-    private readonly HttpClient _httpClient;
-
-    public FornecedorService(ApplicationDbContext context, IMapper mapper, HttpClient httpClient)
+    public class FornecedorService
     {
-        _context = context;
-        _mapper = mapper;
-        _httpClient = httpClient;
-    }
+        private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
+        private readonly HttpClient _httpClient;
 
-    public async Task<IEnumerable<Fornecedor>> GetFilteredAsync(string? nome, string? documento)
-    {
-        var query = _context.Fornecedores.AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(nome))
-            query = query.Where(f => f.Nome.Contains(nome));
-
-        if (!string.IsNullOrWhiteSpace(documento))
-            query = query.Where(f => f.Documento == documento);
-
-        return await query.ToListAsync();
-    }
-
-    public async Task CreateAsync(FornecedorCreateDto dto, int empresaId)
-    {
-
-        if (await _context.Fornecedores.AnyAsync(f => f.Documento == dto.Documento))
-            throw new Exception("Documento (CPF/CNPJ) já cadastrado.");
-
-
-        var cepValido = await ValidarCepAsync(dto.Cep);
-        if (!cepValido)
-            throw new Exception("CEP inválido ou não encontrado.");
-
-
-        var empresa = await _context.Empresas.FirstOrDefaultAsync(e => e.Id == empresaId);
-        if (empresa == null)
-            throw new Exception("Empresa associada não encontrada.");
-
-
-        var fornecedor = _mapper.Map<Fornecedor>(dto);
-
-        if (empresa.Cep.StartsWith("8") && dto.DataNascimento.HasValue)
+        public FornecedorService(ApplicationDbContext context, IMapper mapper, HttpClient httpClient)
         {
-            var idade = CalcularIdade(dto.DataNascimento.Value);
-            if (idade < 18)
-                throw new Exception("Empresa do Paraná não pode cadastrar fornecedor pessoa física menor de idade.");
+            _context = context;
+            _mapper = mapper;
+            _httpClient = httpClient;
         }
 
-        _context.Fornecedores.Add(fornecedor);
-        _context.FornecedorEmpresa.Add(new FornecedorEmpresa
+        public async Task<List<FornecedorDto>> GetAllAsync()
         {
-            EmpresaId = empresaId,
-            Fornecedor = fornecedor
-        });
+            var fornecedores = await _context.Fornecedores
+                .Include(f => f.Empresas)
+                .ThenInclude(fe => fe.Empresa)
+                .ToListAsync();
 
-        await _context.SaveChangesAsync();
-    }
+            return _mapper.Map<List<FornecedorDto>>(fornecedores);
+        }
 
-    public async Task DeleteAsync(int id)
-    {
-        var fornecedor = await _context.Fornecedores.FindAsync(id);
-        if (fornecedor == null)
-            throw new Exception("Fornecedor não encontrado.");
+        public async Task<FornecedorDto?> GetByIdAsync(int id)
+        {
+            var fornecedor = await _context.Fornecedores
+                .Include(f => f.Empresas)
+                .ThenInclude(fe => fe.Empresa)
+                .FirstOrDefaultAsync(f => f.Id == id);
 
-        _context.Fornecedores.Remove(fornecedor);
-        await _context.SaveChangesAsync();
-    }
+            return fornecedor is null ? null : _mapper.Map<FornecedorDto>(fornecedor);
+        }
 
-    private async Task<bool> ValidarCepAsync(string cep)
-    {
-        _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-        var response = await _httpClient.GetAsync($"https://cep.la/{cep}");
+        public async Task<FornecedorDto> CreateAsync(FornecedorCreateDto dto)
+        {
+            if (!await CepValidator.ValidarAsync(dto.Cep, _httpClient))
+                throw new ArgumentException("CEP inválido.");
 
-        return response.IsSuccessStatusCode;
-    }
+            var fornecedor = _mapper.Map<Fornecedor>(dto);
 
-    private int CalcularIdade(DateOnly nascimento)
-    {
-        var hoje = DateOnly.FromDateTime(DateTime.Now);
-        var idade = hoje.Year - nascimento.Year;
-        if (nascimento > hoje.AddYears(-idade)) idade--;
-        return idade;
+            if (dto.EmpresaIds != null && dto.EmpresaIds.Any())
+            {
+                var empresas = await _context.Empresas
+                    .Where(e => dto.EmpresaIds.Contains(e.Id))
+                    .ToListAsync();
+
+                foreach (var empresa in empresas)
+                {
+                    RegraParanaValidator.Validar(empresa, fornecedor);
+
+                    fornecedor.Empresas.Add(new FornecedorEmpresa
+                    {
+                        EmpresaId = empresa.Id,
+                        Fornecedor = fornecedor
+                    });
+                }
+            }
+
+            _context.Fornecedores.Add(fornecedor);
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<FornecedorDto>(fornecedor);
+        }
+
+        public async Task<bool> UpdateAsync(int id, FornecedorUpdateDto dto)
+        {
+            if (!await CepValidator.ValidarAsync(dto.Cep, _httpClient))
+                throw new ArgumentException("CEP inválido.");
+
+            var fornecedor = await _context.Fornecedores
+                .Include(f => f.Empresas)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (fornecedor is null)
+                return false;
+
+            _mapper.Map(dto, fornecedor);
+
+            if (dto.EmpresaIds != null && dto.EmpresaIds.Any())
+            {
+                var empresas = await _context.Empresas
+                    .Where(e => dto.EmpresaIds.Contains(e.Id))
+                    .ToListAsync();
+
+                foreach (var empresa in empresas)
+                {
+                    RegraParanaValidator.Validar(empresa, fornecedor);
+
+                    fornecedor.Empresas.Add(new FornecedorEmpresa
+                    {
+                        EmpresaId = empresa.Id,
+                        FornecedorId = fornecedor.Id
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var fornecedor = await _context.Fornecedores.FindAsync(id);
+            if (fornecedor is null) return false;
+
+            _context.Fornecedores.Remove(fornecedor);
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }
