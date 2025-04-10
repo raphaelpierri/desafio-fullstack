@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace EmpresaFornecedor.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateModelComRegras : Migration
+    public partial class Inicial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
