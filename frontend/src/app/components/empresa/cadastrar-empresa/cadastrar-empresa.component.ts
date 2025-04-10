@@ -7,6 +7,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CepMaskDirective } from '../../../directives/cep-mask.directive';
 import { CnpjMaskDirective } from '../../../directives/cnpj-mask.directive';
 import { VinculacaoComponent } from '../../vinculacao/vinculacao.component';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-cadastrar-empresa',
@@ -24,7 +25,8 @@ export class CadastrarEmpresaComponent {
     private router: Router,
     private route: ActivatedRoute,
     private cepService: CepService,
-    private empresaService: EmpresaService
+    private empresaService: EmpresaService,
+    private toastr: ToastrService,
   ) {}
 
   ngOnInit(): void {
@@ -86,15 +88,22 @@ export class CadastrarEmpresaComponent {
   }
 
   onSubmit(): void {
+    console.log(this.empresaForm);
     if (this.empresaForm.valid) {
       const dados = {
         ...this.empresaForm.value,
         fornecedoresIds: this.fornecedoresVinculados.map(e => e.id)
       };
-      const empresaData = this.empresaForm.value;
+
+      this.empresaService.create(dados).subscribe({
+        next: () => {
+          this.toastr.success('Empresa cadastrada com sucesso!');
+          this.router.navigate(['../'], {relativeTo: this.route});
+        },
+        error: (erro) => console.error('Erro ao cadastrar:', erro)
+    })
     }
   }
-
   onVoltar () {
     this.router.navigate(['../../'], {relativeTo: this.route})
   }

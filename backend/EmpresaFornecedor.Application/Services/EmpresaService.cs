@@ -40,20 +40,24 @@ namespace EmpresaFornecedor.Application.Services
         public async Task<EmpresaDto> CreateAsync(EmpresaCreateDto dto)
         {
             var empresa = _mapper.Map<Empresa>(dto);
-
-            if (dto.FornecedorIds != null && dto.FornecedorIds.Any())
-            {
-                empresa.Fornecedores = dto.FornecedorIds
-                    .Select(fornecedorId => new FornecedorEmpresa
-                    {
-                        FornecedorId = fornecedorId,
-                        Empresa = empresa
-                    }).ToList();
-            }
+            empresa.Fornecedores = null;
 
             _context.Empresas.Add(empresa);
             await _context.SaveChangesAsync();
 
+            if (dto.FornecedorIds != null && dto.FornecedorIds.Any())
+            {
+                var relacoes = dto.FornecedorIds.Select(fornecedorId => new FornecedorEmpresa
+                {
+                    EmpresaId = empresa.Id,
+                    FornecedorId = fornecedorId
+                });
+
+                await _context.FornecedorEmpresa.AddRangeAsync(relacoes);
+                await _context.SaveChangesAsync();
+            }
+
+            // ✅ Retorna objeto
             return _mapper.Map<EmpresaDto>(empresa);
         }
 
@@ -63,24 +67,27 @@ namespace EmpresaFornecedor.Application.Services
                 .Include(e => e.Fornecedores)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
-            if (empresa is null)
+            if (empresa == null)
                 return false;
 
             _mapper.Map(dto, empresa);
+            await _context.SaveChangesAsync();
 
-            // Adiciona os novos relacionamentos
+            // Remove relacionamentos antigos
+            var relacoesAntigas = _context.FornecedorEmpresa
+                .Where(fe => fe.EmpresaId == empresa.Id);
+            _context.FornecedorEmpresa.RemoveRange(relacoesAntigas);
+
+            // Adiciona novos relacionamentos
             if (dto.FornecedorIds != null && dto.FornecedorIds.Any())
             {
-                empresa.Fornecedores = dto.FornecedorIds
-                    .Select(fornecedorId => new FornecedorEmpresa
-                    {
-                        EmpresaId = empresa.Id,
-                        FornecedorId = fornecedorId
-                    }).ToList();
-            }
-            else
-            {
-                empresa.Fornecedores = new List<FornecedorEmpresa>();
+                var novasRelacoes = dto.FornecedorIds.Select(fornecedorId => new FornecedorEmpresa
+                {
+                    EmpresaId = empresa.Id,
+                    FornecedorId = fornecedorId
+                });
+
+                await _context.FornecedorEmpresa.AddRangeAsync(novasRelacoes);
             }
 
             await _context.SaveChangesAsync();

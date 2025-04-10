@@ -7,11 +7,16 @@ import { Fornecedor, TipoPessoa } from '../../models/fornecedor.model';
 })
 export class FiltrarFornecedorPipe implements PipeTransform {
   transform(fornecedores: Fornecedor[], nome: string, documento: string): Fornecedor[] {
+    if (!fornecedores) return [];
+
     return fornecedores.filter(f => {
-      const matchNome = f.nome.toLowerCase().includes(nome.toLowerCase());
+      const nomeOk = nome?.trim() ? f.nome.toLowerCase().includes(nome.toLowerCase()) : true;
+
       const doc = f.tipoPessoa === TipoPessoa.FISICA ? f.cpf : f.cnpj;
-      const matchDoc = doc?.includes(documento);
-      return matchNome && matchDoc;
+      const docOk = documento?.trim() ? doc?.includes(documento) : true;
+
+      return nomeOk && docOk;
     });
   }
 }
+

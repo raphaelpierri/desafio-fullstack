@@ -11,13 +11,15 @@ namespace EmpresaFornecedor.Application.Mapping
         {
             // Fornecedor
             CreateMap<Fornecedor, FornecedorDto>();
-            CreateMap<FornecedorCreateDto, Fornecedor>();
+            CreateMap<FornecedorCreateDto, Fornecedor>()
+                .ForMember(dest => dest.Empresas, opt => opt.Ignore());
             CreateMap<FornecedorUpdateDto, Fornecedor>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
 
             // Empresa
             CreateMap<Empresa, EmpresaDto>();
-            CreateMap<EmpresaCreateDto, Empresa>();
+            CreateMap<EmpresaCreateDto, Empresa>()
+                .ForMember(dest => dest.Fornecedores, opt => opt.Ignore());
             CreateMap<EmpresaUpdateDto, Empresa>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore());
         }

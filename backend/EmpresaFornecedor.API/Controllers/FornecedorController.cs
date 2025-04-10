@@ -30,10 +30,10 @@ namespace EmpresaFornecedor.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] FornecedorCreateDto dto)
+        public async Task<IActionResult> Create(FornecedorCreateDto dto)
         {
-            await _fornecedorService.CreateAsync(dto);
-            return Ok("Fornecedor criado com sucesso.");
+            var fornecedor = await _fornecedorService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = fornecedor.Id }, fornecedor); // <- 201 + JSON
         }
 
         [HttpPut("{id}")]

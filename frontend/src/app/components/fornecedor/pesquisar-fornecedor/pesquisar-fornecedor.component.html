@@ -55,8 +55,12 @@
                 <td>
                   {{
                     fornecedor.tipoPessoa === TipoPessoa.FISICA
-                      ? (fornecedor.cpf?.toString() ?? "" | cpf)
-                      : (fornecedor.cnpj?.toString() ?? "" | cnpj)
+                      ? fornecedor.cpf
+                        ? (fornecedor.cpf | cpf)
+                        : ""
+                      : fornecedor.cnpj
+                      ? (fornecedor.cnpj | cnpj)
+                      : ""
                   }}
                 </td>
                 <td>{{ fornecedor.email }}</td>

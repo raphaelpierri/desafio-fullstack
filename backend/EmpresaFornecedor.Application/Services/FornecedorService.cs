@@ -45,28 +45,28 @@ namespace EmpresaFornecedor.Application.Services
             if (!await CepValidator.ValidarAsync(dto.Cep, _httpClient))
                 throw new ArgumentException("CEP inválido.");
 
+            // ✅ Verifica se o documento já existe
+            bool documentoExiste = await _context.Fornecedores.AnyAsync(f => f.Documento == dto.Documento);
+            if (documentoExiste)
+                throw new ArgumentException("Já existe um fornecedor com esse documento.");
+
             var fornecedor = _mapper.Map<Fornecedor>(dto);
-
-            if (dto.EmpresaIds != null && dto.EmpresaIds.Any())
-            {
-                var empresas = await _context.Empresas
-                    .Where(e => dto.EmpresaIds.Contains(e.Id))
-                    .ToListAsync();
-
-                foreach (var empresa in empresas)
-                {
-                    RegraParanaValidator.Validar(empresa, fornecedor);
-
-                    fornecedor.Empresas.Add(new FornecedorEmpresa
-                    {
-                        EmpresaId = empresa.Id,
-                        Fornecedor = fornecedor
-                    });
-                }
-            }
+            fornecedor.Empresas = null;
 
             _context.Fornecedores.Add(fornecedor);
             await _context.SaveChangesAsync();
+
+            if (dto.EmpresaIds != null && dto.EmpresaIds.Any())
+            {
+                var relacoes = dto.EmpresaIds.Select(empresaId => new FornecedorEmpresa
+                {
+                    FornecedorId = fornecedor.Id,
+                    EmpresaId = empresaId
+                });
+
+                await _context.FornecedorEmpresa.AddRangeAsync(relacoes);
+                await _context.SaveChangesAsync();
+            }
 
             return _mapper.Map<FornecedorDto>(fornecedor);
         }
@@ -80,27 +80,37 @@ namespace EmpresaFornecedor.Application.Services
                 .Include(f => f.Empresas)
                 .FirstOrDefaultAsync(f => f.Id == id);
 
-            if (fornecedor is null)
+            if (fornecedor == null)
                 return false;
 
             _mapper.Map(dto, fornecedor);
+            await _context.SaveChangesAsync();
 
+            // Remove relacionamentos antigos
+            var relacoesAntigas = _context.FornecedorEmpresa
+                .Where(fe => fe.FornecedorId == fornecedor.Id);
+            _context.FornecedorEmpresa.RemoveRange(relacoesAntigas);
+
+            // Adiciona novos relacionamentos
             if (dto.EmpresaIds != null && dto.EmpresaIds.Any())
             {
                 var empresas = await _context.Empresas
                     .Where(e => dto.EmpresaIds.Contains(e.Id))
                     .ToListAsync();
 
+                var novasRelacoes = new List<FornecedorEmpresa>();
                 foreach (var empresa in empresas)
                 {
                     RegraParanaValidator.Validar(empresa, fornecedor);
 
-                    fornecedor.Empresas.Add(new FornecedorEmpresa
+                    novasRelacoes.Add(new FornecedorEmpresa
                     {
-                        EmpresaId = empresa.Id,
-                        FornecedorId = fornecedor.Id
+                        FornecedorId = fornecedor.Id,
+                        EmpresaId = empresa.Id
                     });
                 }
+
+                await _context.FornecedorEmpresa.AddRangeAsync(novasRelacoes);
             }
 
             await _context.SaveChangesAsync();

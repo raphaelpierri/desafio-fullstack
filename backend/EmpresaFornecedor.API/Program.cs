@@ -16,7 +16,7 @@ builder.Services.AddSwaggerGen(c =>
 // Força o Kestrel a escutar na porta 80 para compatibilidade com o docker-compose
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(80);
+    options.ListenAnyIP(5000);
 });
 
 // Adiciona os serviços básicos

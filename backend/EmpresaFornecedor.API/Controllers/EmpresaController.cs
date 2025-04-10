@@ -33,15 +33,18 @@ namespace EmpresaFornecedor.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(EmpresaCreateDto dto)
         {
-            await _empresaService.CreateAsync(dto);
-            return Ok("Empresa criada com sucesso.");
+            var empresa = await _empresaService.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = empresa.Id }, empresa); // <- 201 + JSON
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, EmpresaUpdateDto dto)
         {
-            await _empresaService.UpdateAsync(id, dto);
-            return Ok("Empresa atualizada com sucesso.");
+            bool atualizado = await _empresaService.UpdateAsync(id, dto);
+            if (!atualizado)
+                return NotFound();
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]

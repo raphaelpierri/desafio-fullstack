@@ -45,9 +45,9 @@ export class EditarEmpresaComponent {
 
   private createForm(): void {
     this.empresaForm = this.fb.group({
-      cnpj: ['', [Validators.required, Validators.pattern(/^\d{14}$/)]],
+      cnpj: ['', [Validators.required, Validators.pattern(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/)]],
       nomeFantasia: ['', [Validators.required, Validators.minLength(3)]],
-      cep: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]],
+      cep: ['', [Validators.required, Validators.pattern(/^\d{5}-?\d{3}$/)]],
       logradouro: [''],
       bairro: [''],
       cidade: [''],

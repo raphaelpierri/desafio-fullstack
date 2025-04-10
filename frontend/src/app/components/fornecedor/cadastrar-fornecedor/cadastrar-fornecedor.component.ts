@@ -9,6 +9,7 @@ import { CnpjMaskDirective } from '../../../directives/cnpj-mask.directive';
 import { CpfMaskDirective } from '../../../directives/cpf-mask.directive';
 import { VinculacaoComponent } from '../../vinculacao/vinculacao.component';
 import { RgMaskDirective } from '../../../directives/rg-mask.directive';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-cadastrar-fornecedor',
@@ -36,7 +37,8 @@ export class CadastrarFornecedorComponent {
     private router: Router,
     private route: ActivatedRoute,
     private cepService: CepService,
-    private fornecedorService: FornecedorService
+    private fornecedorService: FornecedorService,
+        private toastr: ToastrService,
   ) {}
 
   ngOnInit(): void {
@@ -151,7 +153,7 @@ export class CadastrarFornecedorComponent {
 
       this.fornecedorService.create(dados).subscribe({
         next: () => {
-          alert('Fornecedor cadastrado com sucesso!');
+          this.toastr.success('Fornecedor cadastrado com sucesso!');
           this.router.navigate(['/lista-fornecedores']);
         },
         error: (erro) => console.error('Erro ao cadastrar:', erro)

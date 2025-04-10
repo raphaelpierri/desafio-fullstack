@@ -8,6 +8,7 @@ export enum TipoPessoa {
 export interface Fornecedor {
   id: number;
   tipoPessoa: TipoPessoa;
+  documento?: string;
   cpf?: string;
   cnpj?: string;
   nome: string;
@@ -22,6 +23,7 @@ export class FornecedorModel implements Fornecedor {
   constructor(
     public id: number,
     public tipoPessoa: TipoPessoa,
+    public documento: string,
     public nome: string,
     public email: string,
     public cep: string,

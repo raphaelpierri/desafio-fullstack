@@ -10,13 +10,15 @@ COPY EmpresaFornecedor.API/*.csproj EmpresaFornecedor.API/
 COPY EmpresaFornecedor.Application/*.csproj EmpresaFornecedor.Application/
 COPY EmpresaFornecedor.Domain/*.csproj EmpresaFornecedor.Domain/
 COPY EmpresaFornecedor.Infrastructure/*.csproj EmpresaFornecedor.Infrastructure/
-COPY EmpresaFornecedor.Tests/*.csproj EmpresaFornecedor.Tests/
 
 # Restaura os pacotes (os projetos copiados são os necessários)
 RUN dotnet restore
 
 # Copia todo o código-fonte para dentro do container
 COPY . .
+
+# Copia explicitamente as migrations
+COPY EmpresaFornecedor.Infrastructure/Migrations/ EmpresaFornecedor.Infrastructure/Migrations/
 
 # Publica o projeto de entrada (EmpresaFornecedor.API)
 WORKDIR /src/EmpresaFornecedor.API
