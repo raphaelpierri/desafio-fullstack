@@ -16,4 +16,5 @@ export const routes: Routes = [
   { path: 'fornecedores', component: PesquisarFornecedorComponent },
   { path: 'fornecedores/cadastrar', component: CadastrarFornecedorComponent },
   { path: 'fornecedores/editar/:id', component: EditarFornecedorComponent },
+  { path: '**', redirectTo: '/home' } // Fallback route
 ];

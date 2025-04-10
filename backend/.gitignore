@@ -1,0 +1,58 @@
+# .NET Core
+bin/
+obj/
+
+# VS Code
+.vscode/
+
+# ASP.NET Core
+wwwroot/
+
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.vspscc
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows Installer files
+Thumbs.db
+
+# JetBrains Rider
+.idea/
+
+# VS for Mac
+.vscode/
+
+# Docker
+docker-compose.override.yml
+
+# NPM / Node.js
+node_modules/
+
+# Local development settings
+appsettings.Development.json
+
+# Azure Functions
+.local/
+
+# Build directories
+out/
+
+# C# Tools
+.vs/
+
+# Test results
+TestResults/
+
+# JetBrains Rider
+.idea/
+
+# ASP.NET Core Publish Folder
+publish/
