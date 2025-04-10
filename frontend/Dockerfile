@@ -1,7 +1,10 @@
 FROM node:20 AS builder
 WORKDIR /app
 COPY package*.json ./
+
+RUN npm cache clean --force
 RUN npm install
+
 COPY . .
 RUN npm run build -- --output-path=dist/desafio-fullstack-frontend
 
