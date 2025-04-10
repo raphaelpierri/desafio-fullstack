@@ -41,6 +41,6 @@ namespace EmpresaFornecedor.Application.DTOs.Fornecedor
         /// <example>2000-01-01</example>
         public DateOnly? DataNascimento { get; set; }
 
-        public List<int>? EmpresaIds { get; set; }
+        public List<int>? Empresas { get; set; }
     }
 }

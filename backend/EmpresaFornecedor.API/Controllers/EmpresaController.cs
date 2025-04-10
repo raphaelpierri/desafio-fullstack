@@ -1,7 +1,6 @@
-// EmpresaController.cs
-using Microsoft.AspNetCore.Mvc;
 using EmpresaFornecedor.Application.DTOs.Empresa;
 using EmpresaFornecedor.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EmpresaFornecedor.API.Controllers
 {
@@ -17,41 +16,56 @@ namespace EmpresaFornecedor.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<List<EmpresaDto>>> GetAll()
         {
-            var empresas = await _empresaService.GetAllAsync();
-            return Ok(empresas);
+            return Ok(await _empresaService.GetAllAsync());
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<ActionResult<EmpresaDto>> GetById(int id)
         {
             var empresa = await _empresaService.GetByIdAsync(id);
-            return empresa == null ? NotFound() : Ok(empresa);
+            if (empresa == null) return NotFound();
+            return Ok(empresa);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(EmpresaCreateDto dto)
+        public async Task<ActionResult<EmpresaDto>> Create([FromBody] EmpresaCreateDto dto)
         {
-            var empresa = await _empresaService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = empresa.Id }, empresa); // <- 201 + JSON
+            try
+            {
+                var created = await _empresaService.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
         }
+
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, EmpresaUpdateDto dto)
+        public async Task<ActionResult<EmpresaDto>> Update(int id, [FromBody] EmpresaCreateDto dto)
         {
-            bool atualizado = await _empresaService.UpdateAsync(id, dto);
-            if (!atualizado)
-                return NotFound();
-
-            return NoContent();
+            try
+            {
+                var updated = await _empresaService.UpdateAsync(id, dto);
+                if (updated == null) return NotFound();
+                return Ok(updated);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message }); // HTTP 409
+            }
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _empresaService.DeleteAsync(id);
-            return Ok("Empresa deletada com sucesso.");
+            var success = await _empresaService.DeleteAsync(id);
+            if (!success) return NotFound();
+            return NoContent();
         }
     }
 }

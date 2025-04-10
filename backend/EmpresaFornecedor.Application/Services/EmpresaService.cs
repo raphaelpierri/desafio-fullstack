@@ -24,7 +24,12 @@ namespace EmpresaFornecedor.Application.Services
                 .ThenInclude(fe => fe.Fornecedor)
                 .ToListAsync();
 
-            return _mapper.Map<List<EmpresaDto>>(empresas);
+            return empresas.Select(e =>
+            {
+                var dto = _mapper.Map<EmpresaDto>(e);
+                dto.Fornecedores = e.Fornecedores.Select(f => f.FornecedorId).ToList();
+                return dto;
+            }).ToList();
         }
 
         public async Task<EmpresaDto?> GetByIdAsync(int id)
@@ -34,70 +39,81 @@ namespace EmpresaFornecedor.Application.Services
                 .ThenInclude(fe => fe.Fornecedor)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
-            return empresa is null ? null : _mapper.Map<EmpresaDto>(empresa);
+            if (empresa == null) return null;
+
+            var dto = _mapper.Map<EmpresaDto>(empresa);
+            dto.Fornecedores = empresa.Fornecedores.Select(f => f.FornecedorId).ToList();
+            return dto;
         }
 
         public async Task<EmpresaDto> CreateAsync(EmpresaCreateDto dto)
         {
+            bool cnpjJaExiste = await _context.Empresas.AnyAsync(e => e.Cnpj == dto.Cnpj);
+            if (cnpjJaExiste)
+                throw new InvalidOperationException($"Já existe uma empresa com o CNPJ {dto.Cnpj}");
+
             var empresa = _mapper.Map<Empresa>(dto);
-            empresa.Fornecedores = null;
+            empresa.Fornecedores = new List<FornecedorEmpresa>();
+
+            if (dto.Fornecedores != null)
+            {
+                foreach (var fornecedorId in dto.Fornecedores.Where(id => id > 0))
+                {
+                    empresa.Fornecedores.Add(new FornecedorEmpresa
+                    {
+                        EmpresaId = empresa.Id,
+                        FornecedorId = fornecedorId
+                    });
+                }
+            }
 
             _context.Empresas.Add(empresa);
             await _context.SaveChangesAsync();
 
-            if (dto.FornecedorIds != null && dto.FornecedorIds.Any())
-            {
-                var relacoes = dto.FornecedorIds.Select(fornecedorId => new FornecedorEmpresa
-                {
-                    EmpresaId = empresa.Id,
-                    FornecedorId = fornecedorId
-                });
-
-                await _context.FornecedorEmpresa.AddRangeAsync(relacoes);
-                await _context.SaveChangesAsync();
-            }
-
-            // ✅ Retorna objeto
-            return _mapper.Map<EmpresaDto>(empresa);
+            return await GetByIdAsync(empresa.Id) ?? throw new Exception("Erro ao buscar a empresa criada.");
         }
 
-        public async Task<bool> UpdateAsync(int id, EmpresaUpdateDto dto)
+        public async Task<EmpresaDto?> UpdateAsync(int id, EmpresaCreateDto dto)
         {
+
+            bool cnpjJaExiste = await _context.Empresas.AnyAsync(e => e.Cnpj == dto.Cnpj);
+            if (cnpjJaExiste)
+                throw new InvalidOperationException($"Já existe uma empresa com o CNPJ {dto.Cnpj}");
+
             var empresa = await _context.Empresas
                 .Include(e => e.Fornecedores)
                 .FirstOrDefaultAsync(e => e.Id == id);
 
-            if (empresa == null)
-                return false;
+            if (empresa == null) return null;
 
-            _mapper.Map(dto, empresa);
-            await _context.SaveChangesAsync();
 
-            // Remove relacionamentos antigos
-            var relacoesAntigas = _context.FornecedorEmpresa
-                .Where(fe => fe.EmpresaId == empresa.Id);
-            _context.FornecedorEmpresa.RemoveRange(relacoesAntigas);
+            empresa.Cnpj = dto.Cnpj;
+            empresa.NomeFantasia = dto.NomeFantasia;
+            empresa.Cep = dto.Cep;
 
-            // Adiciona novos relacionamentos
-            if (dto.FornecedorIds != null && dto.FornecedorIds.Any())
+            empresa.Fornecedores.Clear();
+
+            if (dto.Fornecedores != null)
             {
-                var novasRelacoes = dto.FornecedorIds.Select(fornecedorId => new FornecedorEmpresa
+                foreach (var fornecedorId in dto.Fornecedores.Where(id => id > 0))
                 {
-                    EmpresaId = empresa.Id,
-                    FornecedorId = fornecedorId
-                });
-
-                await _context.FornecedorEmpresa.AddRangeAsync(novasRelacoes);
+                    empresa.Fornecedores.Add(new FornecedorEmpresa
+                    {
+                        EmpresaId = empresa.Id,
+                        FornecedorId = fornecedorId
+                    });
+                }
             }
 
             await _context.SaveChangesAsync();
-            return true;
+
+            return await GetByIdAsync(empresa.Id);
         }
 
         public async Task<bool> DeleteAsync(int id)
         {
             var empresa = await _context.Empresas.FindAsync(id);
-            if (empresa is null) return false;
+            if (empresa == null) return false;
 
             _context.Empresas.Remove(empresa);
             await _context.SaveChangesAsync();

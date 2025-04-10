@@ -1,27 +1,27 @@
 using AutoMapper;
-using EmpresaFornecedor.Domain.Entities;
-using EmpresaFornecedor.Application.DTOs.Fornecedor;
 using EmpresaFornecedor.Application.DTOs.Empresa;
+using EmpresaFornecedor.Application.DTOs.Fornecedor;
+using EmpresaFornecedor.Domain.Entities;
 
-namespace EmpresaFornecedor.Application.Mapping
+namespace EmpresaFornecedor.Application.Mappings
 {
-    public class AutoMapperProfile : Profile
+    public class DomainToDtoProfile : Profile
     {
-        public AutoMapperProfile()
+        public DomainToDtoProfile()
         {
-            // Fornecedor
-            CreateMap<Fornecedor, FornecedorDto>();
-            CreateMap<FornecedorCreateDto, Fornecedor>()
-                .ForMember(dest => dest.Empresas, opt => opt.Ignore());
-            CreateMap<FornecedorUpdateDto, Fornecedor>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore());
+            // Empresa -> EmpresaDto
+            CreateMap<Empresa, EmpresaDto>()
+                .ForMember(dest => dest.Fornecedores,
+                    opt => opt.MapFrom(src => src.Fornecedores.Select(fe => fe.FornecedorId)));
 
-            // Empresa
-            CreateMap<Empresa, EmpresaDto>();
-            CreateMap<EmpresaCreateDto, Empresa>()
-                .ForMember(dest => dest.Fornecedores, opt => opt.Ignore());
-            CreateMap<EmpresaUpdateDto, Empresa>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore());
+            // Fornecedor -> FornecedorDto
+            CreateMap<Fornecedor, FornecedorDto>()
+                .ForMember(dest => dest.Empresas,
+                    opt => opt.MapFrom(src => src.Empresas.Select(e => e.EmpresaId)));
+
+            // DTO -> entidade (para criação)
+            CreateMap<EmpresaCreateDto, Empresa>();
+            CreateMap<FornecedorCreateDto, Fornecedor>();
         }
     }
 }

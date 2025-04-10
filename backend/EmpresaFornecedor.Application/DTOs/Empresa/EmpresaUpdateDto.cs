@@ -6,6 +6,6 @@ namespace EmpresaFornecedor.Application.DTOs.Empresa
         public string NomeFantasia { get; set; } = null!;
         public string Cep { get; set; } = null!;
 
-        public List<int>? FornecedorIds { get; set; }
+        public List<int>? Fornecedores { get; set; }
     }
 }

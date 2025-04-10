@@ -1,11 +1,11 @@
-using Microsoft.AspNetCore.Mvc;
 using EmpresaFornecedor.Application.DTOs.Fornecedor;
 using EmpresaFornecedor.Application.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EmpresaFornecedor.API.Controllers
 {
     [ApiController]
-    [Route("api/fornecedor")]
+    [Route("api/[controller]")]
     public class FornecedorController : ControllerBase
     {
         private readonly FornecedorService _fornecedorService;
@@ -16,38 +16,53 @@ namespace EmpresaFornecedor.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<List<FornecedorDto>>> GetAll()
         {
-            var fornecedores = await _fornecedorService.GetAllAsync();
-            return Ok(fornecedores);
+            return Ok(await _fornecedorService.GetAllAsync());
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<ActionResult<FornecedorDto>> GetById(int id)
         {
             var fornecedor = await _fornecedorService.GetByIdAsync(id);
-            return fornecedor is null ? NotFound() : Ok(fornecedor);
+            if (fornecedor == null) return NotFound();
+            return Ok(fornecedor);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(FornecedorCreateDto dto)
+        public async Task<ActionResult<FornecedorDto>> Create([FromBody] FornecedorCreateDto dto)
         {
-            var fornecedor = await _fornecedorService.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = fornecedor.Id }, fornecedor); // <- 201 + JSON
+            try
+            {
+                var created = await _fornecedorService.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
         }
-
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, FornecedorUpdateDto dto)
+        public async Task<ActionResult<FornecedorDto>> Update(int id, [FromBody] FornecedorCreateDto dto)
         {
-            await _fornecedorService.UpdateAsync(id, dto);
-            return Ok("Fornecedor atualizado com sucesso.");
+            try
+            {
+                var updated = await _fornecedorService.UpdateAsync(id, dto);
+                if (updated == null) return NotFound();
+                return Ok(updated);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _fornecedorService.DeleteAsync(id);
-            return Ok("Fornecedor deletado com sucesso.");
+            var success = await _fornecedorService.DeleteAsync(id);
+            if (!success) return NotFound();
+            return NoContent();
         }
     }
 }

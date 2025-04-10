@@ -5,7 +5,7 @@ export interface Empresa {
   cnpj: string;
   nomeFantasia: string;
   cep: string;
-  fornecedores: Fornecedor[];
+  fornecedores?: Fornecedor[];
   dataCadastro: Date;
   endereco?: {
     logradouro: string;
@@ -21,7 +21,7 @@ export class EmpresaModel implements Empresa {
     public cnpj: string,
     public nomeFantasia: string,
     public cep: string,
-    public fornecedores: Fornecedor[] = [],
+    public fornecedores?: Fornecedor[],
     public dataCadastro: Date = new Date(),
     public endereco?: {
       logradouro: string;

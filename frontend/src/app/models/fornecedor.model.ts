@@ -16,7 +16,7 @@ export interface Fornecedor {
   cep: string;
   rg?: string;
   dataNascimento?: Date;
-  empresas: Empresa[];
+  empresas?: Empresa[];
 }
 
 export class FornecedorModel implements Fornecedor {
@@ -27,7 +27,7 @@ export class FornecedorModel implements Fornecedor {
     public nome: string,
     public email: string,
     public cep: string,
-    public empresas: Empresa[] = [],
+    public empresas?: Empresa[],
     public cpf?: string,
     public cnpj?: string,
     public rg?: string,

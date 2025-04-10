@@ -31,8 +31,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Registra os serviços da aplicação
 builder.Services.AddScoped<EmpresaService>();
 
-// Registra FornecedorService como cliente tipado de HttpClient, assim o HttpClient será injetado
-builder.Services.AddHttpClient<FornecedorService>();
+builder.Services.AddScoped<FornecedorService>();
+
 
 // Registra o AutoMapper para escanear os assemblies
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());

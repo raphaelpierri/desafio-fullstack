@@ -68,7 +68,9 @@ export class EditarFornecedorComponent {
     this.fornecedorService.findById(this.id).subscribe({
       next: (fornecedor) => {
         this.fornecedorForm.patchValue(fornecedor);
-        this.empresasVinculadas = fornecedor.empresas;
+        if (fornecedor.empresas && fornecedor.empresas.length > 0) {
+          this.empresasVinculadas = fornecedor.empresas.map(e => e.id);
+        }
         this.setupTipoValidations();
       }
     });

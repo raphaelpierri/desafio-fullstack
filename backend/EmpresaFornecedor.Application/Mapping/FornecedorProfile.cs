@@ -9,7 +9,7 @@ namespace EmpresaFornecedor.Application.Mappings
         public FornecedorProfile()
         {
             CreateMap<Fornecedor, FornecedorDto>()
-                .ForMember(dest => dest.EmpresaIds, opt =>
+                .ForMember(dest => dest.Empresas, opt =>
                     opt.MapFrom(src => src.Empresas.Select(e => e.EmpresaId)));
 
             CreateMap<FornecedorCreateDto, Fornecedor>();
