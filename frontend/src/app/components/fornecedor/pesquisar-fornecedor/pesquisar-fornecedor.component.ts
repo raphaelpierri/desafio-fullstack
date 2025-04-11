@@ -39,7 +39,6 @@ export class PesquisarFornecedorComponent implements OnInit {
   carregarFornecedores(): void {
     this.service.findAll().subscribe({
       next: (data: Fornecedor[]) => {
-        console.log(data)
         this.fornecedores = data,
         this.loading = false
       },

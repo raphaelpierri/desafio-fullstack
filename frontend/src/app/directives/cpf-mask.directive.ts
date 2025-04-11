@@ -1,46 +1,55 @@
 import { Directive, ElementRef, HostListener } from '@angular/core';
+import { NgControl } from '@angular/forms';
 
 @Directive({
   selector: '[appCpfMask]',
   standalone: true
 })
 export class CpfMaskDirective {
-  constructor(private el: ElementRef) {}
+  constructor(
+    private el: ElementRef,
+    private control: NgControl
+  ) {}
 
   @HostListener('input', ['$event'])
   onInput(event: Event): void {
     const input = event.target as HTMLInputElement;
-    let value = input.value.replace(/\D/g, '');
 
-    if (value.length > 11) {
-      value = value.substring(0, 11);
+    let digits = input.value.replace(/\D/g, '');
+
+    if (digits.length > 11) {
+      digits = digits.substring(0, 11);
     }
 
-    value = this.formatCPF(value);
+    const masked = this.applyMask(digits);
 
-    if (input.value !== value) {
-      input.value = value;
-      input.dispatchEvent(new Event('input'));
+    input.value = masked;
+    if (this.control?.control) {
+      this.control.control.setValue(masked, { emitEvent: false });
     }
   }
 
-  private formatCPF(value: string): string {
-    return value
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-      .replace(/(-\d{2})\d+?$/, '$1');
+  private applyMask(value: string): string {
+    if (value.length <= 3) {
+      return value;
+    } else if (value.length <= 6) {
+      return `${value.substring(0, 3)}.${value.substring(3)}`;
+    } else if (value.length <= 9) {
+      return `${value.substring(0, 3)}.${value.substring(3, 6)}.${value.substring(6)}`;
+    } else {
+      return `${value.substring(0, 3)}.${value.substring(3, 6)}.${value.substring(6, 9)}-${value.substring(9, 11)}`;
+    }
   }
 
   @HostListener('blur')
-  onBlur(): void {
-    const input = this.el.nativeElement as HTMLInputElement;
-    if (input.value.length === 0) return;
-
-    if (!/^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(input.value)) {
-      input.classList.add('is-invalid');
-    } else {
-      input.classList.remove('is-invalid');
-    }
+onBlur(): void {
+  const input = this.el.nativeElement as HTMLInputElement;
+  const clean = input.value.replace(/\D/g, '');
+  if (clean.length !== 11) {
+    input.classList.add('is-invalid');
+  } else {
+    input.classList.remove('is-invalid');
   }
+}
+
 }

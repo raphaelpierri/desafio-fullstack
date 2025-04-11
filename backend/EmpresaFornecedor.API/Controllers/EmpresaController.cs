@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EmpresaFornecedor.API.Controllers
 {
     [ApiController]
-    [Route("api/empresa")]
+    [Route("api/[controller]")]
     public class EmpresaController : ControllerBase
     {
         private readonly EmpresaService _empresaService;

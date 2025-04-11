@@ -4,30 +4,6 @@
   </div>
 
   <div class="mb-3">
-    <label class="form-label">Tipo de Fornecedor</label>
-    <div class="form-check">
-      <input
-        class="form-check-input"
-        type="radio"
-        value="PF"
-        formControlName="tipo"
-        id="tipoPF"
-      />
-      <label class="form-check-label" for="tipoPF"> Pessoa Física </label>
-    </div>
-    <div class="form-check">
-      <input
-        class="form-check-input"
-        type="radio"
-        value="PJ"
-        formControlName="tipo"
-        id="tipoPJ"
-      />
-      <label class="form-check-label" for="tipoPJ"> Pessoa Jurídica </label>
-    </div>
-  </div>
-
-  <div class="mb-3">
     <label class="form-label">
       {{ fornecedorForm.get("tipo")?.value === "PF" ? "CPF" : "CNPJ" }}
     </label>
@@ -238,7 +214,7 @@
   <button
     type="submit"
     class="btn btn-primary m-1"
-    [disabled]="!fornecedorForm.valid"
+    [disabled]="!fornecedorForm.valid || !enderecoEncontrado"
     title="Salvar"
   >
     Salvar

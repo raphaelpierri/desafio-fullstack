@@ -8,6 +8,8 @@ import { CepMaskDirective } from '../../../directives/cep-mask.directive';
 import { CnpjMaskDirective } from '../../../directives/cnpj-mask.directive';
 import { VinculacaoComponent } from '../../vinculacao/vinculacao.component';
 import { ToastrService } from 'ngx-toastr';
+import { FornecedorService } from '../../../services/fornecedor.service';
+import { catchError, of } from 'rxjs';
 
 @Component({
   selector: 'app-cadastrar-empresa',
@@ -19,6 +21,9 @@ import { ToastrService } from 'ngx-toastr';
 export class CadastrarEmpresaComponent {
   empresaForm!: FormGroup;
   fornecedoresVinculados: any[] = [];
+  enderecoEncontrado = false
+  validacaoRegraParana = true
+
 
   constructor(
     private fb: FormBuilder,
@@ -26,6 +31,7 @@ export class CadastrarEmpresaComponent {
     private route: ActivatedRoute,
     private cepService: CepService,
     private empresaService: EmpresaService,
+    private fornecedorService: FornecedorService,
     private toastr: ToastrService,
   ) {}
 
@@ -46,6 +52,7 @@ export class CadastrarEmpresaComponent {
     });
   }
 
+
   private validateCep(): void {
     this.empresaForm.get('cep')?.valueChanges.subscribe(cep => {
       if (this.cepService.validarFormatoCEP(cep)) {
@@ -54,14 +61,18 @@ export class CadastrarEmpresaComponent {
     });
   }
 
-   buscarEndereco(cep: string): void {
+  buscarEndereco(cep: string): void {
     this.cepService.buscarEndereco(cep).subscribe({
       next: (endereco) => {
         if (endereco) {
+          this.enderecoEncontrado = true;
           this.preencherEndereco(endereco);
         }
       },
-      error: () => this.limparCamposEndereco()
+      error: () => {
+        this.enderecoEncontrado = false;
+        this.limparCamposEndereco();
+      }
     });
   }
 
@@ -87,24 +98,47 @@ export class CadastrarEmpresaComponent {
     this.fornecedoresVinculados = fornecedores;
   }
 
+
   onSubmit(): void {
-    console.log(this.empresaForm);
     if (this.empresaForm.valid) {
       const dados = {
         ...this.empresaForm.value,
-        fornecedoresIds: this.fornecedoresVinculados.map(e => e.id)
+        fornecedores: this.fornecedoresVinculados.map(e => e.id)
       };
 
-      this.empresaService.create(dados).subscribe({
-        next: () => {
+      const isParana = this.empresaForm.get('estado')?.value === 'PR';
+
+      if (this.fornecedoresVinculados.length > 0 && isParana) {
+        const algumMenor = this.fornecedoresVinculados.some(f => {
+          const data = new Date(f.dataNascimento);
+          const idade = this.fornecedorService.calcularIdade(data);
+          return idade < 18;
+        });
+
+        if (algumMenor) {
+          this.toastr.warning('Não é possível vincular fornecedores menores de idade a empresas do Paraná!');
+          return;
+        }
+      }
+
+      this.empresaService.create(dados).pipe(
+        catchError((erro) => {
+          console.error('Erro ao cadastrar empresa:', erro);
+          this.toastr.warning(erro.error.message);
+          return of(null);
+        })
+      ).subscribe((res) => {
+        if (res) {
           this.toastr.success('Empresa cadastrada com sucesso!');
-          this.router.navigate(['../'], {relativeTo: this.route});
-        },
-        error: (erro) => console.error('Erro ao cadastrar:', erro)
-    })
+          this.router.navigate(['../'], { relativeTo: this.route });
+        }
+      });
+    } else {
+      this.empresaForm.markAllAsTouched();
     }
   }
+
   onVoltar () {
-    this.router.navigate(['../../'], {relativeTo: this.route})
+    this.router.navigate(['../'], {relativeTo: this.route})
   }
 }

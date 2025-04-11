@@ -9,6 +9,9 @@ import { CnpjMaskDirective } from '../../../directives/cnpj-mask.directive';
 import { CpfMaskDirective } from '../../../directives/cpf-mask.directive';
 import { VinculacaoComponent } from '../../../components/vinculacao/vinculacao.component';
 import { RgMaskDirective } from '../../../directives/rg-mask.directive';
+import { firstValueFrom } from 'rxjs';
+import { EmpresaService } from '../../../services/empresa.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-editar-fornecedor',
@@ -29,14 +32,19 @@ import { RgMaskDirective } from '../../../directives/rg-mask.directive';
 export class EditarFornecedorComponent {
   id!: number;
   fornecedorForm!: FormGroup;
+  empresasIdsVinculados: any[] = [];
   empresasVinculadas: any[] = [];
+  validacaoRegraParana = true
+  enderecoEncontrado = true;
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private route: ActivatedRoute,
     private cepService: CepService,
-    private fornecedorService: FornecedorService
+    private fornecedorService: FornecedorService,
+    private empresaService: EmpresaService,
+    private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
@@ -67,40 +75,25 @@ export class EditarFornecedorComponent {
   private loadFornecedorData(): void {
     this.fornecedorService.findById(this.id).subscribe({
       next: (fornecedor) => {
+        this.fornecedorForm.get('documento')?.setValue(fornecedor.cpf ? fornecedor.cpf : fornecedor.cnpj);
+        if (fornecedor.rg) {
+          this.fornecedorForm.get('tipo')?.setValue('PF');
+        } else {
+          this.fornecedorForm.get('tipo')?.setValue('PJ');
+        }
         this.fornecedorForm.patchValue(fornecedor);
         if (fornecedor.empresas && fornecedor.empresas.length > 0) {
-          this.empresasVinculadas = fornecedor.empresas.map(e => e.id);
+          this.empresasIdsVinculados = fornecedor.empresas.map((empresa) => empresa.id);
+          for (let empresaId of this.empresasIdsVinculados) {
+            this.empresaService.findById(empresaId).subscribe({
+              next: (empresa) => {
+                this.empresasVinculadas.push(empresa);
+              }
+            })
+          }
         }
-        this.setupTipoValidations();
       }
     });
-  }
-
-  private setupTipoValidations(): void {
-    const tipo = this.fornecedorForm.get('tipo')?.value;
-    const documentoControl = this.fornecedorForm.get('documento');
-    const rgControl = this.fornecedorForm.get('rg');
-    const dataNascimentoControl = this.fornecedorForm.get('dataNascimento');
-
-    if (tipo === 'PF') {
-      documentoControl?.setValidators([
-        Validators.required,
-        Validators.pattern(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/)
-      ]);
-      rgControl?.setValidators([Validators.required]);
-      dataNascimentoControl?.setValidators([Validators.required]);
-    } else {
-      documentoControl?.setValidators([
-        Validators.required,
-        Validators.pattern(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/)
-      ]);
-      rgControl?.clearValidators();
-      dataNascimentoControl?.clearValidators();
-    }
-
-    documentoControl?.updateValueAndValidity();
-    rgControl?.updateValueAndValidity();
-    dataNascimentoControl?.updateValueAndValidity();
   }
 
   private validateCep(): void {
@@ -144,25 +137,47 @@ export class EditarFornecedorComponent {
     this.empresasVinculadas = empresas;
   }
 
-  onSubmit(): void {
+
+  async onSubmit(): Promise<void> {
     if (this.fornecedorForm.valid) {
+      const fornecedor = this.fornecedorForm.value;
       const rawData = {
-        ...this.fornecedorForm.value,
-        documento: this.fornecedorForm.value.documento.replace(/\D/g, ''),
-        empresasIds: this.empresasVinculadas.map(e => e.id)
+        ...fornecedor,
+        documento: fornecedor.documento.replace(/\D/g, ''),
+        empresas: this.empresasVinculadas.map(e => e.id)
       };
+
+      const isPessoaFisica = fornecedor.rg !== null && fornecedor.rg !== '';
+      const dataNascimento = new Date(fornecedor.dataNascimento);
+      const idade = this.fornecedorService.calcularIdade(dataNascimento);
+
+      if (isPessoaFisica && idade < 18 && this.empresasVinculadas.length > 0) {
+        // Buscar os endereços das empresas vinculadas
+        const enderecos = await Promise.all(
+          this.empresasVinculadas.map(e => firstValueFrom(this.cepService.buscarEndereco(e.cep)))
+        );
+
+        const algumaEmpresaDoPR = enderecos.some(endereco => endereco?.uf === 'PR');
+
+        if (algumaEmpresaDoPR) {
+          this.toastr.warning('Não é possível vincular um fornecedor pessoa física menor de idade a uma empresa do Paraná.');
+          return;
+        }
+      }
 
       this.fornecedorService.updateById(this.id, rawData).subscribe({
         next: () => {
-          alert('Fornecedor atualizado com sucesso!');
-          this.router.navigate(['/fornecedores']);
+          this.toastr.success('Fornecedor atualizado com sucesso!');
+          this.router.navigate(['../../'], { relativeTo: this.route });
         },
-        error: (erro) => console.error('Erro ao atualizar:', erro)
+        error: (erro) => this.toastr.error('Erro ao atualizar:', erro)
       });
+    } else {
+      this.fornecedorForm.markAllAsTouched();
     }
   }
 
   onVoltar() {
-    this.router.navigate(['../../'], { relativeTo: this.route });
+    this.router.navigate(['../'], { relativeTo: this.route });
   }
 }

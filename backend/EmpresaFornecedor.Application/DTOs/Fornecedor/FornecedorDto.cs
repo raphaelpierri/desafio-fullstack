@@ -1,5 +1,4 @@
-using EmpresaFornecedor.Application.DTOs.Empresa;
-
+// Corrigir o namespace do DTO:
 namespace EmpresaFornecedor.Application.DTOs.Fornecedor
 {
     public class FornecedorDto
@@ -11,6 +10,6 @@ namespace EmpresaFornecedor.Application.DTOs.Fornecedor
         public string Cep { get; set; } = null!;
         public string Rg { get; set; } = null!;
         public DateOnly? DataNascimento { get; set; }
-        public List<int>? Empresas { get; set; }
+        public List<EmpresaDto> Empresas { get; set; } = new();
     }
 }

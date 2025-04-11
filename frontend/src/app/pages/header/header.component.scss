@@ -1,7 +1,7 @@
 .header {
   position: fixed;
   top: 0;
-  left: 250px; // Alinhado com a sidebar
+  left: 250px;
   right: 0;
   height: 80px;
   z-index: 1000;
@@ -24,7 +24,7 @@
 
   .title {
     color: white;
-    font-size: 1.8rem; // Tamanho aumentado
+    font-size: 1.8rem;
     font-weight: 600;
     letter-spacing: 0.5px;
     margin: 0;

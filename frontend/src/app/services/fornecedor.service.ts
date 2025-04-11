@@ -4,7 +4,6 @@ import { Observable, map } from 'rxjs';
 import { Fornecedor, TipoPessoa } from '../models/fornecedor.model';
 import { environment } from '../../environments/environment';
 
-// Tipo vindo do backend (com 'documento')
 interface FornecedorBackend {
   id: number;
   tipoPessoa: TipoPessoa;
@@ -54,28 +53,28 @@ export class FornecedorService {
   }
 
   create(fornecedor: Fornecedor): Observable<Fornecedor> {
-    const payload = this.mapFornecedorToBackend(fornecedor);
-    return this.http.post<Fornecedor>(this.apiUrl, payload);
+    return this.http.post<Fornecedor>(this.apiUrl, fornecedor);
   }
 
   updateById(id: number, fornecedor: Fornecedor): Observable<Fornecedor> {
-    const payload = this.mapFornecedorToBackend(fornecedor);
-    return this.http.put<Fornecedor>(`${this.apiUrl}/${id}`, payload);
+    return this.http.put<Fornecedor>(`${this.apiUrl}/${id}`, fornecedor);
   }
 
   delete(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  validarDocumentoExistente(documento: string): Observable<boolean> {
-    return this.http.get<boolean>(`${this.apiUrl}/validar-documento/${documento}`);
+  calcularIdade(dataNascimento: Date): number {
+    const hoje = new Date();
+    let idade = hoje.getFullYear() - dataNascimento.getFullYear();
+    const mes = hoje.getMonth() - dataNascimento.getMonth();
+
+    if (mes < 0 || (mes === 0 && hoje.getDate() < dataNascimento.getDate())) {
+      idade--;
+    }
+
+    return idade;
   }
 
-  // 🔁 Adaptador para envio
-  private mapFornecedorToBackend(f: Fornecedor): any {
-    return {
-      ...f,
-      documento: f.tipoPessoa === TipoPessoa.FISICA ? f.cpf : f.cnpj
-    };
-  }
+
 }

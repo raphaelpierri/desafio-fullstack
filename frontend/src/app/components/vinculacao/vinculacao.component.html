@@ -15,7 +15,7 @@
       *ngFor="let item of itensVinculados"
       class="vinculado-item badge bg-secondary me-2"
     >
-      {{ item.nome }}
+      {{ item.nome || item.nomeFantasia }}
       <button
         type="button"
         class="btn-close btn-close-white ms-2"
@@ -40,17 +40,17 @@
             type="text"
             class="form-control mb-3"
             placeholder="Digite para buscar..."
-            [(ngModel)]="termoBusca"
+            [(ngModel)]="filtroBusca"
           />
 
           <div class="list-group">
             <button
               type="button"
               class="list-group-item list-group-item-action"
-              *ngFor="let item of resultadosBusca"
+              *ngFor="let item of resultadosBusca | filtroNome : filtroBusca"
               (click)="selecionarItem(item)"
             >
-              {{ item.nome }}
+              {{ item.nome || item.nomeFantasia }}
             </button>
           </div>
         </div>

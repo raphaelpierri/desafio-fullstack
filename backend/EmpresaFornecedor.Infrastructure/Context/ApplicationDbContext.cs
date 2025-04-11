@@ -18,7 +18,6 @@ namespace EmpresaFornecedor.Infrastructure.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configuração FornecedorEmpresa (chave composta)
             modelBuilder.Entity<FornecedorEmpresa>()
                 .HasKey(fe => new { fe.EmpresaId, fe.FornecedorId });
 

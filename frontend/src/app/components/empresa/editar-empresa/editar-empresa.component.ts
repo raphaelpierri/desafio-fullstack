@@ -7,24 +7,32 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CepMaskDirective } from '../../../directives/cep-mask.directive';
 import { CnpjMaskDirective } from '../../../directives/cnpj-mask.directive';
 import { map, Observable } from 'rxjs';
+import { VinculacaoComponent } from '../../vinculacao/vinculacao.component';
+import { ToastrService } from 'ngx-toastr';
+import { FornecedorService } from '../../../services/fornecedor.service';
 
 @Component({
   selector: 'app-editar-empresa',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, CepMaskDirective, CnpjMaskDirective],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, CepMaskDirective, CnpjMaskDirective,VinculacaoComponent],
   templateUrl: './editar-empresa.component.html',
   styleUrl: './editar-empresa.component.scss'
 })
 export class EditarEmpresaComponent {
   id!: number;
   empresaForm!: FormGroup;
+  fornecedoresVinculados: any[] = [];
+  enderecoEncontrado = false
+  fornecedoresIdsVinculados: any[] = []
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
     private route: ActivatedRoute,
     private cepService: CepService,
-    private empresaService: EmpresaService
+    private empresaService: EmpresaService,
+    private toastr: ToastrService,
+    private fornecedorService: FornecedorService
   ) {}
 
   ngOnInit(): void {
@@ -59,6 +67,16 @@ export class EditarEmpresaComponent {
     this.empresaService.findById(this.id).subscribe({
       next: (empresa) => {
         this.empresaForm.patchValue(empresa);
+        if (empresa.fornecedores && empresa.fornecedores.length > 0) {
+          this.fornecedoresIdsVinculados = empresa.fornecedores.map((fornecedor) => fornecedor.id);
+          for (let fornecedorId of this.fornecedoresIdsVinculados) {
+            this.fornecedorService.findById(fornecedorId).subscribe({
+              next: (fornecedor) => {
+                this.fornecedoresVinculados.push(fornecedor);
+              }
+            })
+          }
+        }
       }
     })
   }
@@ -71,16 +89,25 @@ export class EditarEmpresaComponent {
     });
   }
 
-   buscarEndereco(cep: string): void {
+  buscarEndereco(cep: string): void {
     this.cepService.buscarEndereco(cep).subscribe({
       next: (endereco) => {
         if (endereco) {
+          this.enderecoEncontrado = true;
           this.preencherEndereco(endereco);
         }
       },
-      error: () => this.limparCamposEndereco()
+      error: () => {
+        this.enderecoEncontrado = false;
+        this.limparCamposEndereco();
+      }
     });
   }
+
+  atualizarFornecedores(fornecedores: any[]): void {
+    this.fornecedoresVinculados = fornecedores;
+  }
+
 
   private preencherEndereco(endereco: Endereco): void {
     this.empresaForm.patchValue({
@@ -102,12 +129,38 @@ export class EditarEmpresaComponent {
 
   onSubmit(): void {
     if (this.empresaForm.valid) {
-      const empresaData = this.empresaForm.value;
-      // Implementar envio para o serviço
+      const rawData = {
+        ...this.empresaForm.value,
+        fornecedores: this.fornecedoresVinculados.map(e => e.id)
+      };
+
+      const isParana = this.empresaForm.get('estado')?.value === 'PR';
+
+      if (this.fornecedoresVinculados.length > 0 && isParana) {
+        const algumMenorPF = this.fornecedoresVinculados.some(f => {
+          const isPF = f.rg != null;
+          const data = new Date(f.dataNascimento);
+          const idade = this.fornecedorService.calcularIdade(data);
+          return isPF && idade < 18;
+        });
+
+        if (algumMenorPF) {
+          this.toastr.warning('Não é possível vincular fornecedores PF menores de idade a empresas do Paraná!');
+          return;
+        }
+      }
+
+      this.empresaService.updateById(this.id, rawData).subscribe({
+        next: () => {
+          this.toastr.success('Empresa atualizada com sucesso!');
+          this.router.navigate(['/empresas']);
+        },
+        error: (erro) => this.toastr.error('Erro ao atualizar:', erro)
+      });
     }
   }
 
   onVoltar () {
-    this.router.navigate(['../../'], {relativeTo: this.route})
+    this.router.navigate(['../'], {relativeTo: this.route})
   }
 }

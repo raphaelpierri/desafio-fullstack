@@ -2,6 +2,24 @@
   <div class="d-flex justify-content-between mb-4">
     <h2>Editar Empresa</h2>
   </div>
+
+  <div class="mb-3">
+    <label for="nomeFantasia" class="form-label">Nome Fantasia</label>
+    <input
+      type="text"
+      class="form-control"
+      id="nomeFantasia"
+      formControlName="nomeFantasia"
+    />
+    <div *ngIf="empresaForm.get('nomeFantasia')?.errors" class="text-danger">
+      <small *ngIf="empresaForm.get('nomeFantasia')?.hasError('required')">
+        Nome Fantasia é obrigatório
+      </small>
+      <small *ngIf="empresaForm.get('nomeFantasia')?.hasError('minlength')">
+        Nome Fantasia deve ter pelo menos 3 caracteres
+      </small>
+    </div>
+  </div>
   <div class="mb-3">
     <label for="cnpj" class="form-label">CNPJ</label>
     <input
@@ -42,7 +60,6 @@
     </div>
   </div>
 
-  <!-- Campos de endereço -->
   <div class="row">
     <div class="col-md-6">
       <div class="mb-3">
@@ -93,6 +110,13 @@
     </div>
   </div>
 
+  <app-vinculacao
+    [titulo]="'Fornecedores Vinculados'"
+    [tipo]="'fornecedores'"
+    [itensVinculados]="fornecedoresVinculados"
+    (atualizarVinculos)="atualizarFornecedores($event)"
+  ></app-vinculacao>
+
   <button
     type="button"
     class="btn btn-secondary"
@@ -106,6 +130,7 @@
     class="btn btn-primary m-1"
     (click)="onSubmit()"
     title="Salvar"
+    [disabled]="!empresaForm.valid || !enderecoEncontrado"
   >
     Salvar
   </button>

@@ -1,48 +1,48 @@
 import { Directive, ElementRef, HostListener } from '@angular/core';
+import { NgControl } from '@angular/forms';
 
 @Directive({
   selector: '[appRgMask]',
   standalone: true
 })
 export class RgMaskDirective {
-  constructor(private el: ElementRef) {}
+  constructor(
+    private el: ElementRef,
+    private control: NgControl
+  ) {}
 
   @HostListener('input', ['$event'])
   onInput(event: Event): void {
     const input = event.target as HTMLInputElement;
     let value = input.value.replace(/[^\dXx]/g, '').toUpperCase();
 
-    if (value.length > 10) {
-      value = value.substring(0, 10);
+    if (value.length > 9) {
+      value = value.substring(0, 9);
     }
 
-    value = this.formatRG(value);
+    const formatted = this.formatRG(value);
+    input.value = formatted;
 
-    if (input.value !== value) {
-      input.value = value;
-      input.dispatchEvent(new Event('input'));
+    if (this.control?.control) {
+      this.control.control.setValue(formatted, { emitEvent: false });
     }
   }
 
   private formatRG(value: string): string {
-    const cleanValue = value.replace(/[^\dX]/g, '');
-
-    return cleanValue
-      .replace(/(\d{2})(\d)/, '$1.$2')
-      .replace(/(\d{3})(\d)/, '$1.$2')
-      .replace(/(\d{3})([\dX])/, '$1-$2')
-      .replace(/(-\w{1}).+?$/, '$1');
+    // 00.000.000 ou 00.000.000-0
+    return value
+      .replace(/^(\d{2})(\d)/, '$1.$2')
+      .replace(/^(\d{2}\.\d{3})(\d)/, '$1.$2')
+      .replace(/^(\d{2}\.\d{3}\.\d{3})([\dX])/, '$1-$2');
   }
 
   @HostListener('blur')
   onBlur(): void {
-    const input = this.el.nativeElement;
+    const input = this.el.nativeElement as HTMLInputElement;
     const value = input.value;
 
-    if (value && !/^\d{2}\.\d{3}\.\d{3}-\w{1}$/.test(value)) {
-      input.classList.add('is-invalid');
-    } else {
-      input.classList.remove('is-invalid');
-    }
+    const isValid = /^\d{2}\.\d{3}\.\d{3}(-[\dX])?$/.test(value);
+
+    input.classList.toggle('is-invalid', !isValid);
   }
 }

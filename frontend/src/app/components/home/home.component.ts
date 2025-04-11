@@ -11,8 +11,8 @@ import { CommonModule } from '@angular/common';
 export class HomeComponent {
   tecnologias = [
     {
-      icone: 'bi-angular',
-      nome: 'Angular 19',
+      icone: 'bi bi-terminal',
+      nome: 'Angular 17+',
       descricao: 'Frontend Moderno'
     },
     {
@@ -23,7 +23,7 @@ export class HomeComponent {
     {
       icone: 'bi-microsoft',
       nome: '.NET Core 9',
-      descricao: 'Backend Robustecido com C#'
+      descricao: 'Backend com C#'
     },
     {
       icone: 'bi-database',
@@ -31,7 +31,7 @@ export class HomeComponent {
       descricao: 'Banco de Dados Relacional'
     },
     {
-      icone: 'bi-docker',
+      icone: 'bi bi-window-dock',
       nome: 'Docker',
       descricao: 'Containerização e Deploy'
     },

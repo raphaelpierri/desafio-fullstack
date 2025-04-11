@@ -9,6 +9,7 @@ import { CnpjMaskDirective } from '../../../directives/cnpj-mask.directive';
 import { CpfMaskDirective } from '../../../directives/cpf-mask.directive';
 import { VinculacaoComponent } from '../../vinculacao/vinculacao.component';
 import { RgMaskDirective } from '../../../directives/rg-mask.directive';
+import { catchError, firstValueFrom, of } from 'rxjs';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
@@ -76,13 +77,27 @@ export class CadastrarFornecedorComponent {
         ]);
         rgControl?.setValidators([Validators.required]);
         dataNascimentoControl?.setValidators([Validators.required]);
+
+        this.fornecedorForm.patchValue({
+          documento: '',
+          rg: '',
+          dataNascimento: ''
+        });
+
       } else {
+
         documentoControl?.setValidators([
           Validators.required,
           Validators.pattern(/^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$/)
         ]);
         rgControl?.clearValidators();
         dataNascimentoControl?.clearValidators();
+
+        this.fornecedorForm.patchValue({
+          documento: '',
+          rg: '',
+          dataNascimento: ''
+        });
       }
 
       documentoControl?.updateValueAndValidity();
@@ -90,6 +105,7 @@ export class CadastrarFornecedorComponent {
       dataNascimentoControl?.updateValueAndValidity();
     });
   }
+
 
   private validateCep(): void {
     this.fornecedorForm.get('cep')?.valueChanges.subscribe(cep => {
@@ -136,32 +152,63 @@ export class CadastrarFornecedorComponent {
     this.empresasVinculadas = empresas;
   }
 
-  onSubmit(): void {
-    if (this.fornecedorForm.valid && this.enderecoEncontrado) {
-      const formData = this.fornecedorForm.value;
-      const rawData = {
-        ...formData,
-        documento: formData.documento.replace(/\D/g, ''),
-        rg: formData.rg?.replace(/\D/g, ''),
-        cep: formData.cep.replace(/\D/g, '')
-      };
-
-      const dados = {
-        ...rawData,
-        empresasIds: this.empresasVinculadas.map(e => e.id)
-      };
-
-      this.fornecedorService.create(dados).subscribe({
-        next: () => {
-          this.toastr.success('Fornecedor cadastrado com sucesso!');
-          this.router.navigate(['/lista-fornecedores']);
-        },
-        error: (erro) => console.error('Erro ao cadastrar:', erro)
-      });
+  async onSubmit(): Promise<void> {
+    if (this.fornecedorForm.invalid || !this.enderecoEncontrado) {
+      this.fornecedorForm.markAllAsTouched();
+      return;
     }
+
+    const fornecedor = this.fornecedorForm.value;
+    const rawData = {
+      ...fornecedor,
+      documento: fornecedor.documento.replace(/\D/g, ''),
+      rg: fornecedor.rg?.replace(/\D/g, ''),
+      cep: fornecedor.cep.replace(/\D/g, '')
+    };
+
+    const dados = {
+      ...rawData,
+      empresas: this.empresasVinculadas.map(e => e.id)
+    };
+
+    const isPessoaFisica = fornecedor.rg !== null && fornecedor.rg !== '';
+    const dataNascimento = new Date(fornecedor.dataNascimento);
+    const idade = this.fornecedorService.calcularIdade(dataNascimento);
+
+    if (isPessoaFisica && idade < 18 && this.empresasVinculadas.length > 0) {
+      try {
+        const enderecos = await Promise.all(
+          this.empresasVinculadas.map(e => firstValueFrom(this.cepService.buscarEndereco(e.cep)))
+        );
+
+        const algumaEmpresaDoPR = enderecos.some(endereco => endereco?.uf === 'PR');
+
+        if (algumaEmpresaDoPR) {
+          this.toastr.warning('Não é possível vincular um fornecedor pessoa física menor de idade a uma empresa do Paraná.');
+          return;
+        }
+      } catch (error) {
+        this.toastr.error('Erro ao validar endereços vinculados.');
+        return;
+      }
+    }
+
+    this.fornecedorService.create(dados).pipe(
+      catchError((erro) => {
+        console.error('Erro ao cadastrar fornecedor:', erro);
+        this.toastr.warning(erro.error.message);
+        return of(null);
+      })
+    ).subscribe((res) => {
+      if (res) {
+        this.toastr.success('Fornecedor cadastrado com sucesso!');
+        this.router.navigate(['../'], { relativeTo: this.route });
+      }
+    });
   }
 
+
   onVoltar() {
-    this.router.navigate(['../../'], { relativeTo: this.route });
+    this.router.navigate(['../'], { relativeTo: this.route });
   }
 }

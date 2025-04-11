@@ -1,4 +1,4 @@
-using AutoMapper;
+using EmpresaFornecedor.Application.DTOs.Empresa;
 using EmpresaFornecedor.Application.DTOs.Fornecedor;
 using EmpresaFornecedor.Domain.Entities;
 using EmpresaFornecedor.Infrastructure.Context;
@@ -9,26 +9,35 @@ namespace EmpresaFornecedor.Application.Services
     public class FornecedorService
     {
         private readonly ApplicationDbContext _context;
-        private readonly IMapper _mapper;
 
-        public FornecedorService(ApplicationDbContext context, IMapper mapper)
+        public FornecedorService(ApplicationDbContext context)
         {
             _context = context;
-            _mapper = mapper;
         }
 
         public async Task<List<FornecedorDto>> GetAllAsync()
         {
             var fornecedores = await _context.Fornecedores
                 .Include(f => f.Empresas)
-                .ThenInclude(fe => fe.Empresa)
+                    .ThenInclude(fe => fe.Empresa)
                 .ToListAsync();
 
-            return fornecedores.Select(f =>
+            return fornecedores.Select(f => new FornecedorDto
             {
-                var dto = _mapper.Map<FornecedorDto>(f);
-                dto.Empresas = f.Empresas.Select(e => e.EmpresaId).ToList();
-                return dto;
+                Id = f.Id,
+                Nome = f.Nome,
+                Documento = f.Documento,
+                Email = f.Email,
+                Cep = f.Cep,
+                Rg = f.Rg,
+                DataNascimento = f.DataNascimento,
+                Empresas = f.Empresas.Select(e => new EmpresaDto
+                {
+                    Id = e.Empresa.Id,
+                    NomeFantasia = e.Empresa.NomeFantasia,
+                    Cnpj = e.Empresa.Cnpj,
+                    Cep = e.Empresa.Cep
+                }).ToList()
             }).ToList();
         }
 
@@ -36,14 +45,28 @@ namespace EmpresaFornecedor.Application.Services
         {
             var fornecedor = await _context.Fornecedores
                 .Include(f => f.Empresas)
-                .ThenInclude(fe => fe.Empresa)
+                    .ThenInclude(fe => fe.Empresa)
                 .FirstOrDefaultAsync(f => f.Id == id);
 
             if (fornecedor == null) return null;
 
-            var dto = _mapper.Map<FornecedorDto>(fornecedor);
-            dto.Empresas = fornecedor.Empresas.Select(e => e.EmpresaId).ToList();
-            return dto;
+            return new FornecedorDto
+            {
+                Id = fornecedor.Id,
+                Nome = fornecedor.Nome,
+                Documento = fornecedor.Documento,
+                Email = fornecedor.Email,
+                Cep = fornecedor.Cep,
+                Rg = fornecedor.Rg,
+                DataNascimento = fornecedor.DataNascimento,
+                Empresas = fornecedor.Empresas.Select(e => new EmpresaDto
+                {
+                    Id = e.Empresa.Id,
+                    NomeFantasia = e.Empresa.NomeFantasia,
+                    Cnpj = e.Empresa.Cnpj,
+                    Cep = e.Empresa.Cep
+                }).ToList()
+            };
         }
 
         public async Task<FornecedorDto> CreateAsync(FornecedorCreateDto dto)
@@ -52,9 +75,16 @@ namespace EmpresaFornecedor.Application.Services
             if (documentoJaExiste)
                 throw new InvalidOperationException($"Já existe um fornecedor com o documento {dto.Documento}");
 
-
-            var fornecedor = _mapper.Map<Fornecedor>(dto);
-            fornecedor.Empresas = new List<FornecedorEmpresa>();
+            var fornecedor = new Fornecedor
+            {
+                Documento = dto.Documento,
+                Nome = dto.Nome,
+                Email = dto.Email,
+                Cep = dto.Cep,
+                Rg = dto.Rg!,
+                DataNascimento = dto.DataNascimento ?? default,
+                Empresas = new List<FornecedorEmpresa>()
+            };
 
             if (dto.Empresas != null)
             {
@@ -62,8 +92,7 @@ namespace EmpresaFornecedor.Application.Services
                 {
                     fornecedor.Empresas.Add(new FornecedorEmpresa
                     {
-                        EmpresaId = empresaId,
-                        FornecedorId = fornecedor.Id
+                        EmpresaId = empresaId
                     });
                 }
             }
@@ -93,7 +122,7 @@ namespace EmpresaFornecedor.Application.Services
             fornecedor.Email = dto.Email;
             fornecedor.Cep = dto.Cep;
             fornecedor.Rg = dto.Rg!;
-            fornecedor.DataNascimento = fornecedor.DataNascimento = dto.DataNascimento ?? default(DateOnly);
+            fornecedor.DataNascimento = dto.DataNascimento ?? default;
 
             fornecedor.Empresas.Clear();
 
