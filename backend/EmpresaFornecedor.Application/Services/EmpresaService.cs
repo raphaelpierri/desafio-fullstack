@@ -1,5 +1,6 @@
 using EmpresaFornecedor.Application.DTOs.Empresa;
 using EmpresaFornecedor.Application.DTOs.Fornecedor;
+using EmpresaFornecedor.Application.Validators;
 using EmpresaFornecedor.Domain.Entities;
 using EmpresaFornecedor.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +10,14 @@ namespace EmpresaFornecedor.Application.Services
     public class EmpresaService
     {
         private readonly ApplicationDbContext _context;
+        private readonly HttpClient _httpClient;
 
-        public EmpresaService(ApplicationDbContext context)
+        public EmpresaService(ApplicationDbContext context, HttpClient httpClient)
         {
             _context = context;
+            _httpClient = httpClient;
         }
+
 
         public async Task<List<EmpresaDto>> GetAllAsync()
         {
@@ -67,6 +71,9 @@ namespace EmpresaFornecedor.Application.Services
 
         public async Task<EmpresaDto> CreateAsync(EmpresaCreateDto dto)
         {
+            if (!await CepValidator.ValidarAsync(dto.Cep, _httpClient))
+                throw new ArgumentException("CEP inválido.");
+
             if (await _context.Empresas.AnyAsync(e => e.Cnpj == dto.Cnpj))
                 throw new InvalidOperationException($"Já existe uma empresa com o CNPJ {dto.Cnpj}");
 
@@ -98,6 +105,10 @@ namespace EmpresaFornecedor.Application.Services
 
         public async Task<EmpresaDto?> UpdateAsync(int id, EmpresaCreateDto dto)
         {
+
+            if (!await CepValidator.ValidarAsync(dto.Cep, _httpClient))
+                throw new ArgumentException("CEP inválido.");
+
             var empresa = await _context.Empresas
                 .Include(e => e.Fornecedores)
                 .FirstOrDefaultAsync(e => e.Id == id);

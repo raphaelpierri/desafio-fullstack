@@ -1,43 +1,40 @@
 version: '3.8'
 
 services:
-  desafio-fullstack-backend:
-    container_name: desafio-fullstack-backend
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "5000:80"
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-    depends_on:
-      - sqlserver
-    networks:
-      - desafio-network
-
-  desafio-fullstack-frontend:
-    container_name: desafio-fullstack-frontend
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "4200:80"
-    depends_on:
-      - desafio-fullstack-backend
-    networks:
-      - desafio-network
-
   sqlserver:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: desafio-fullstack-sqlserver
     environment:
       SA_PASSWORD: "Strong!Passw0rd"
       ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
-    networks:
-      - desafio-network
+    volumes:
+      - sqlvolume:/var/opt/mssql
 
-networks:
-  desafio-network:
-    driver: bridge
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: desafio-fullstack-backend
+    depends_on:
+      - sqlserver
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "5000:80"
+    # 🔥 Importante: não sobrescreve /app com volume local
+    # volumes: removido!
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: desafio-fullstack-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
+volumes:
+  sqlvolume:

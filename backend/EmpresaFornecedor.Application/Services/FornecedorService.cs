@@ -1,6 +1,7 @@
 using EmpresaFornecedor.Application.DTOs.Empresa;
 using EmpresaFornecedor.Application.DTOs.Fornecedor;
 using EmpresaFornecedor.Domain.Entities;
+using EmpresaFornecedor.Application.Validators;
 using EmpresaFornecedor.Infrastructure.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,10 +10,12 @@ namespace EmpresaFornecedor.Application.Services
     public class FornecedorService
     {
         private readonly ApplicationDbContext _context;
+        private readonly HttpClient _httpClient;
 
-        public FornecedorService(ApplicationDbContext context)
+        public FornecedorService(ApplicationDbContext context, HttpClient httpClient)
         {
             _context = context;
+            _httpClient = httpClient;
         }
 
         public async Task<List<FornecedorDto>> GetAllAsync()
@@ -71,6 +74,9 @@ namespace EmpresaFornecedor.Application.Services
 
         public async Task<FornecedorDto> CreateAsync(FornecedorCreateDto dto)
         {
+            if (!await CepValidator.ValidarAsync(dto.Cep, _httpClient))
+                throw new ArgumentException("CEP inválido.");
+
             bool documentoJaExiste = await _context.Fornecedores.AnyAsync(f => f.Documento == dto.Documento);
             if (documentoJaExiste)
                 throw new InvalidOperationException($"Já existe um fornecedor com o documento {dto.Documento}");
@@ -105,6 +111,9 @@ namespace EmpresaFornecedor.Application.Services
 
         public async Task<FornecedorDto?> UpdateAsync(int id, FornecedorCreateDto dto)
         {
+            if (!await CepValidator.ValidarAsync(dto.Cep, _httpClient))
+                throw new ArgumentException("CEP inválido.");
+
             bool documentoJaExiste = await _context.Fornecedores
                 .AnyAsync(f => f.Documento == dto.Documento && f.Id != id);
 
