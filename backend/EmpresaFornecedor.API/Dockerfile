@@ -20,4 +20,5 @@ RUN dotnet publish "EmpresaFornecedor.API.csproj" -c $configuration -o /app/publ
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
 ENTRYPOINT ["dotnet", "EmpresaFornecedor.API.dll"]
