@@ -23,7 +23,7 @@ Projeto full stack com backend em .NET 9, frontend em Angular 17+ e banco de dad
 
 ```bash
 git clone https://github.com/raphaelpierri/desafio-fullstack.git
-cd seu-repositorio/backend
+cd desafio-fullstack/backend
 docker-compose up --build
 ```
 
