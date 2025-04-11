@@ -23,8 +23,6 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
       - "5000:80"
-    # 🔥 Importante: não sobrescreve /app com volume local
-    # volumes: removido!
 
   frontend:
     build:
