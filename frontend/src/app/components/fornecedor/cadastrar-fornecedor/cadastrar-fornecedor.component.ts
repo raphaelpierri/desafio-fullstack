@@ -54,14 +54,21 @@ export class CadastrarFornecedorComponent {
       documento: ['', [Validators.required]],
       nome: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      rg: [''],
-      dataNascimento: [''],
+      rg: [null],
+      dataNascimento: [null],
       cep: ['', [Validators.required, Validators.pattern(/^\d{5}-?\d{3}$/)]],
       logradouro: [''],
       bairro: [''],
       cidade: [''],
       estado: ['']
     });
+  }
+
+  get rgDataNascimentoInvalido(): boolean {
+    if (this.fornecedorForm.get('tipo')?.value === 'PF') {
+      return this.fornecedorForm.get('rg')?.value == null || this.fornecedorForm.get('rg')?.value == '' || this.fornecedorForm.get('dataNascimento')?.value == null || this.fornecedorForm.get('dataNascimento')?.value == '';
+    }
+    return false;
   }
 
   private setupTipoValidations(): void {
@@ -192,7 +199,10 @@ export class CadastrarFornecedorComponent {
         return;
       }
     }
-
+    if (!isPessoaFisica) {
+      dados.rg = null;
+      dados.dataNascimento = null;
+    }
     this.fornecedorService.create(dados).pipe(
       catchError((erro) => {
         console.error('Erro ao cadastrar fornecedor:', erro);

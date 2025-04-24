@@ -62,14 +62,21 @@ export class EditarFornecedorComponent {
       documento: ['', [Validators.required]],
       nome: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
-      rg: [''],
-      dataNascimento: [''],
+      rg: [null],
+      dataNascimento: [null],
       cep: ['', [Validators.required, Validators.pattern(/^\d{8}$/)]],
       logradouro: [''],
       bairro: [''],
       cidade: [''],
       estado: ['']
     });
+  }
+
+  get rgDataNascimentoInvalido(): boolean {
+    if (this.fornecedorForm.get('tipo')?.value === 'PF') {
+      return this.fornecedorForm.get('rg')?.value == null || this.fornecedorForm.get('rg')?.value == '' || this.fornecedorForm.get('dataNascimento')?.value == null || this.fornecedorForm.get('dataNascimento')?.value == '';
+    }
+    return false;
   }
 
   private loadFornecedorData(): void {
@@ -178,6 +185,6 @@ export class EditarFornecedorComponent {
   }
 
   onVoltar() {
-    this.router.navigate(['../'], { relativeTo: this.route });
+    this.router.navigate(['../../'], { relativeTo: this.route });
   }
 }

@@ -161,6 +161,6 @@ export class EditarEmpresaComponent {
   }
 
   onVoltar () {
-    this.router.navigate(['../'], {relativeTo: this.route})
+    this.router.navigate(['../../'], {relativeTo: this.route})
   }
 }

@@ -87,7 +87,7 @@ namespace EmpresaFornecedor.Application.Services
                 Nome = dto.Nome,
                 Email = dto.Email,
                 Cep = dto.Cep,
-                Rg = dto.Rg!,
+                Rg = dto.Rg,
                 DataNascimento = dto.DataNascimento ?? default,
                 Empresas = new List<FornecedorEmpresa>()
             };
@@ -130,7 +130,7 @@ namespace EmpresaFornecedor.Application.Services
             fornecedor.Nome = dto.Nome;
             fornecedor.Email = dto.Email;
             fornecedor.Cep = dto.Cep;
-            fornecedor.Rg = dto.Rg!;
+            fornecedor.Rg = dto.Rg;
             fornecedor.DataNascimento = dto.DataNascimento ?? default;
 
             fornecedor.Empresas.Clear();

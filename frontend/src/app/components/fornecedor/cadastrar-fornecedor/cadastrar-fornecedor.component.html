@@ -99,11 +99,15 @@
           formControlName="rg"
           appRgMask
         />
-        <div *ngIf="fornecedorForm.get('rg')?.errors" class="text-danger">
+        <div
+          *ngIf="fornecedorForm.get('tipo')?.value === 'PF'"
+          class="text-danger"
+        >
           <small
             *ngIf="
-              fornecedorForm.get('rg')?.hasError('required') &&
-              fornecedorForm.get('tipo')?.value === 'PF'
+              fornecedorForm.get('tipo')?.value === 'PF' &&
+              (fornecedorForm.get('rg')?.value == null ||
+                fornecedorForm.get('rg')?.value == '')
             "
           >
             RG obrigatório
@@ -123,12 +127,14 @@
           formControlName="dataNascimento"
         />
         <div
-          *ngIf="fornecedorForm.get('dataNascimento')?.errors"
+          *ngIf="
+            fornecedorForm.get('tipo')?.value === 'PF' &&
+            (fornecedorForm.get('dataNascimento')?.value == null ||
+              fornecedorForm.get('dataNascimento')?.value == '')
+          "
           class="text-danger"
         >
-          <small
-            *ngIf="fornecedorForm.get('dataNascimento')?.hasError('required')"
-          >
+          <small *ngIf="fornecedorForm.get('tipo')?.value === 'PF'">
             Data obrigatória
           </small>
         </div>
@@ -242,9 +248,7 @@
   <button
     type="submit"
     class="btn btn-primary m-1"
-    [disabled]="
-      !fornecedorForm.valid || !enderecoEncontrado
-    "
+    [disabled]="!fornecedorForm.valid || !enderecoEncontrado || rgDataNascimentoInvalido"
     title="Cadastrar"
   >
     Cadastrar

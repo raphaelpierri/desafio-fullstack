@@ -76,8 +76,17 @@
           appRgMask
           placeholder="00.000.000-0"
         />
-        <div *ngIf="fornecedorForm.get('rg')?.errors" class="text-danger">
-          <small *ngIf="fornecedorForm.get('rg')?.hasError('required')">
+        <div
+          *ngIf="fornecedorForm.get('tipo')?.value === 'PF'"
+          class="text-danger"
+        >
+          <small
+            *ngIf="
+              fornecedorForm.get('tipo')?.value === 'PF' &&
+              (fornecedorForm.get('rg')?.value == null ||
+                fornecedorForm.get('rg')?.value == '')
+            "
+          >
             RG obrigatório
           </small>
         </div>
@@ -95,11 +104,15 @@
           formControlName="dataNascimento"
         />
         <div
-          *ngIf="fornecedorForm.get('dataNascimento')?.errors"
+          *ngIf="fornecedorForm.get('dataNascimento')?.value === 'PF'"
           class="text-danger"
         >
           <small
-            *ngIf="fornecedorForm.get('dataNascimento')?.hasError('required')"
+            *ngIf="
+              fornecedorForm.get('tipo')?.value === 'PF' &&
+              (fornecedorForm.get('dataNascimento')?.value == null ||
+                fornecedorForm.get('dataNascimento')?.value == '')
+            "
           >
             Data obrigatória
           </small>
@@ -214,7 +227,9 @@
   <button
     type="submit"
     class="btn btn-primary m-1"
-    [disabled]="!fornecedorForm.valid || !enderecoEncontrado"
+    [disabled]="
+      !fornecedorForm.valid || !enderecoEncontrado || rgDataNascimentoInvalido
+    "
     title="Salvar"
   >
     Salvar
